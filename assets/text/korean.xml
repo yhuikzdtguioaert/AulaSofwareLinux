@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="utf-16"?>
+<root>
+	<config>
+		<tc_config>프로필</tc_config>
+		<tc_exit>닫기 설정</tc_exit>
+		<tc_web></tc_web>
+		<tc_ok>확인</tc_ok>
+		<tc_restore>초기화 하기</tc_restore>
+		<tc_cancel>취소</tc_cancel>
+		<tc_apply>저장</tc_apply>
+		<tc_tap_tips>Fn + W 키를 눌러 키보드를 Windows 모드로 전환하여 드라이버를 사용하십시오.</tc_tap_tips>
+
+		<tc_update1>새 펌웨어가 발견되었습니다. 업데이트하시겠습니까?
+
+(참고: 업데이트하는 동안 창을 닫거나 키보드를 뽑지 마십시오. 업그레이드에 성공하면 키보드를 수동으로 한 번 뽑으십시오!)</tc_update1>
+		<tc_update2>새 드라이버가 감지되었습니다. 업데이트하시겠습니까?</tc_update2>
+		<tc_update3>현재 최신 버전</tc_update3>
+		<tc_update4>다운로드 중</tc_update4>
+		<tc_update5>업데이트 오류</tc_update5>
+		<tc_update6>펌웨어 업데이트</tc_update6>
+		<tc_update7>드라이버 업데이트</tc_update7>
+		<tc_update8>먼저 장치를 USB 연결로 전환하십시오.</tc_update8>
+
+		<tc_macro_msg1>새 폴더</tc_macro_msg1>
+		<tc_macro_msg2>새 매크로</tc_macro_msg2>
+		<tc_macro_msg3>이름을 입력하십시오.</tc_macro_msg3>
+		<tc_macro_msg4>녹화 시작</tc_macro_msg4>
+		<tc_macro_msg5>기록 중지</tc_macro_msg5>
+		<tc_macro_msg6>삭제</tc_macro_msg6>
+		<tc_macro_msg7>키</tc_macro_msg7>
+		<tc_macro_msg8>매크로 편집</tc_macro_msg8>
+		<tc_macro_msg9>매크로 편집 패널</tc_macro_msg9>
+		<tc_macro_msg10>시작 시간</tc_macro_msg10>
+		<tc_macro_msg11>기간</tc_macro_msg11>
+		<tc_macro_msg12>종료 시간</tc_macro_msg12>
+		<tc_macro_msg13>뷰 배율</tc_macro_msg13>
+		<tc_macro_msg14>미리 보기</tc_macro_msg14>
+		<tc_macro_msg15>현재 생성된 매크로가 없습니다. 여기를 클릭해서 매크로를 생성하세요</tc_macro_msg15>
+		<tc_macro_msg16>삽입</tc_macro_msg16>
+		<tc_macro_msg17>반복 회수</tc_macro_msg17>
+		<tc_macro_msg18>누르는 동안 반복</tc_macro_msg18>
+		<tc_macro_msg19>아무 키를 누를 때까지 반복</tc_macro_msg19>
+		<tc_macro_msg20>수평 이동</tc_macro_msg20>
+		<tc_macro_msg21>수직 이동</tc_macro_msg21>
+		<tc_macro_msg22>그런 다음 대기</tc_macro_msg22>
+		<tc_macro_msg23>항목을 더블 클릭하면 편집할 수 있습니다.</tc_macro_msg23>
+		<tc_macro_msg24>반복 시작 시간이 감지되었습니다. 각 키의 시작 시간은 달라야 합니다.</tc_macro_msg24>
+
+		<tc_PL>재생/일시정지</tc_PL>
+		<tc_stop>정지</tc_stop>
+		<tc_pre_media>이전 곡</tc_pre_media>
+		<tc_next_media>다음 곡</tc_next_media>
+		<tc_vol_up>소리 크게</tc_vol_up>
+		<tc_vol_dw>소리 작게</tc_vol_dw>
+		<tc_mute>음소거</tc_mute>
+		<tc_briup>화면 밝게</tc_briup>
+		<tc_bridn>화면 어둡게</tc_bridn>
+
+		<tc_kbmedia_mail>메일 앱 열기</tc_kbmedia_mail>
+		<tc_kbmedia_main>웹 브라우저 열기</tc_kbmedia_main>
+		<tc_kbmedia_explore>내 컴퓨터</tc_kbmedia_explore>
+		<tc_kbmedia_cal>계산기</tc_kbmedia_cal>
+		<tc_kbmedia_favor>즐겨찾기</tc_kbmedia_favor>
+		<tc_kbmedia_msel>플레이어</tc_kbmedia_msel>
+
+		<tc_msfun>마우스</tc_msfun>	
+		<tc_click>좌클릭</tc_click>
+		<tc_menu>우클릭</tc_menu>
+		<tc_middle>휠 클릭</tc_middle>
+		<tc_forward>앞으로 가기</tc_forward>
+		<tc_back>뒤로 </tc_back>
+		<tc_scrollup>위백</tc_scrollup>
+		<tc_scrolldown>롤백</tc_scrolldown>
+		<tc_dbclick>좌클릭 더블 클릭</tc_dbclick>
+		<tc_rdbclick>마우스 오른쪽 버튼으로 더블 클릭</tc_rdbclick>
+		<tc_mac_def>매크로</tc_mac_def>
+		<tc_key_off>기능 없음</tc_key_off>
+
+		<tc_msg1>전역 설정</tc_msg1>
+		<tc_msg2>장치 모델</tc_msg2>
+		<tc_msg3>펌웨어 버전</tc_msg3>
+		<tc_msg4>소프트웨어 버전</tc_msg4>
+		<tc_msg5>남은 전력</tc_msg5>
+		<tc_msg6>닫기 버튼을 눌렀을 때</tc_msg6>
+		<tc_msg7>프로그램 종료</tc_msg7>
+		<tc_msg8>시스템 트레이로 축소</tc_msg8>
+		<tc_msg9>장치</tc_msg9>
+		<tc_msg10>언어</tc_msg10>
+		<tc_msg11>시스템 시작할 때 프로그램 자동 실행</tc_msg11>
+		<tc_msg12>켜기</tc_msg12>
+		<tc_msg13>끄기</tc_msg13>
+		<tc_msg14>사용자 정의 색상</tc_msg14>
+		<tc_msg15>추가</tc_msg15>
+		<tc_msg16>삭제하시겠습니까?</tc_msg16>
+		<tc_msg17>공장 출고 상태로 초기화 합니다.</tc_msg17>
+		<tc_msg18>키 재설정</tc_msg18>
+		<tc_msg19>매크로 수가 최대치에 도달했습니다.</tc_msg19>
+		<tc_msg20>업데이트 자동 확인</tc_msg20>
+		<tc_msg21>공장 출고 상태로 초기화 합니다.</tc_msg21>
+		<tc_msg22>밝기</tc_msg22>
+		<tc_msg23>속도</tc_msg23>
+		<tc_msg24></tc_msg24>
+		<tc_msg25>알록달록하게</tc_msg25>
+		<tc_msg26>프로필</tc_msg26>
+		<tc_msg27>프로필</tc_msg27>
+		<tc_msg28>명령어</tc_msg28>
+		<tc_msg29>키보드</tc_msg29>
+		<tc_msg30>마우스</tc_msg30>
+		<tc_msg31>멀티미디어</tc_msg31>
+		<tc_msg32>조합 키</tc_msg32>
+		<tc_msg33>단일 키 또는 조합 키를 입력하세요</tc_msg33>
+		<tc_msg34>무선 모드에서는 디바이스가 지정된 시간 동안 유휴 상태가 되면 자동으로 절전 모드로 전환됩니다.</tc_msg34>
+		<tc_msg35>장치를 찾는 중입니다. 장치를 연결하십시오. 무선 장치의 경우 키를 눌러 절전 모드를 해제하십시오.</tc_msg35>
+		<tc_msg36>초</tc_msg36>
+		<tc_msg37>분</tc_msg37>
+		<tc_msg38>밀리초</tc_msg38>
+		<tc_msg39>이름 바꾸기</tc_msg39>
+		<tc_msg40>가져오기</tc_msg40>
+		<tc_msg41>내보내기</tc_msg41>
+		<tc_msg42>복제</tc_msg42>
+		<tc_msg43>키를 입력하십시오.</tc_msg43>
+		<tc_msg44>장치가 절전 모드 또는 연결 해제됨</tc_msg44>
+		<tc_msg45>장치 정보</tc_msg45>
+		<tc_msg46>언어</tc_msg46>
+		<tc_msg47>시스템 시작 설정</tc_msg47>
+		<tc_msg48>닫기 설정</tc_msg48>
+		<tc_msg49>절전</tc_msg49>
+		<tc_msg50>초기화</tc_msg50>
+		<tc_msg51>업데이트</tc_msg51>
+		<tc_msg52>잠시 기다려주세요..</tc_msg52>
+		<tc_msg53>설정 오류, 장치 사용 중 또는 무선 간섭, 나중에 다시 시도하십시오.</tc_msg53>
+		<tc_msg54>디바운스</tc_msg54>
+		<tc_msg55>단</tc_msg55>
+
+		<tc_cmd1>창 닫기</tc_cmd1>
+		<tc_cmd2>
+컴퓨터 잠그기</tc_cmd2>
+		<tc_cmd3>실행 창 열기</tc_cmd3>
+		<tc_cmd4>바탕화면 보기</tc_cmd4>
+		<tc_cmd5>축소</tc_cmd5>
+		<tc_cmd6>확대</tc_cmd6>
+		<tc_cmd7>작업 관리자</tc_cmd7>
+		<tc_cmd8>되돌리기</tc_cmd8>
+		<tc_cmd9>저장</tc_cmd9>
+		<tc_cmd10>키 비활성화</tc_cmd10>
+		<tc_cmd11>Win키 잠금/해제</tc_cmd11>
+		<tc_cmd12>키보드 잠금</tc_cmd12>
+		<tc_cmd13>키보드 초기화</tc_cmd13>
+
+		<tc_ms1>DPI级数</tc_ms1>
+		<tc_ms2>DPI 锁定</tc_ms2>
+		<tc_ms3>三连发</tc_ms3>
+		<tc_ms4>RGB打开/关闭</tc_ms4>
+		<tc_ms5>灯效切换</tc_ms5>
+		<tc_ms6>回报率切换</tc_ms6>
+		<tc_ms7>模式切换</tc_ms7>
+		<tc_ms8>DPI循环</tc_ms8>
+		<tc_ms9>火力键</tc_ms9>
+		<tc_ms10>开火次数 ( 0-255 )</tc_ms10>
+		<tc_ms11>开火间隔 ( 5-255 )</tc_ms11>
+		<tc_ms12>说明：间隔值越小，开火速度越快，开火次数为 0 则火力键按下不松开时会持续开</tc_ms12>
+		<tc_ms13>回报率</tc_ms13>
+		<tc_ms14>XY轴独立设置</tc_ms14>
+		<tc_ms15>请保留至少一个键为"左键"功能</tc_ms15>
+		<tc_ms16>灯效列表</tc_ms16>
+		<tc_ms17>방향</tc_ms17>
+		<tc_ms18>鼠标移动速度</tc_ms18>
+		<tc_ms19>提高指针精确度</tc_ms19>
+		<tc_ms20>滚动速度</tc_ms20>
+		<tc_ms21>一次滚动一页</tc_ms21>
+		<tc_ms22>双击速度</tc_ms22>
+		<tc_ms23>버튼을 눌러 떨다</tc_ms23>
+		<tc_ms24></tc_ms24>
+
+		<tc_ms_led1>混彩流光</tc_ms_led1>
+		<tc_ms_led2>单色常亮</tc_ms_led2>
+		<tc_ms_led3>呼吸</tc_ms_led3>
+		<tc_ms_led4>拖尾</tc_ms_led4>
+		<tc_ms_led5>霓虹</tc_ms_led5>
+		<tc_ms_led6>混彩常亮</tc_ms_led6>
+		<tc_ms_led7>闪烁</tc_ms_led7>
+		<tc_ms_led8>繁星点点</tc_ms_led8>
+		<tc_ms_led9>七彩波浪</tc_ms_led9>
+		<tc_ms_led10>关闭</tc_ms_led10>
+
+		<tc_kb1>키보드 백라이트 효과</tc_kb1>
+		<tc_kb2>먼저 키를 선택하세요
+확인</tc_kb2>
+		<tc_kb3>색상 그룹</tc_kb3>
+		<tc_kb4>마우스 왼쪽 버튼을 누른 채 마우스를 이동하면 여러 키를 선택할 수 있습니다.</tc_kb4>
+		<tc_kb5>기본 레이어</tc_kb5>
+		<tc_kb6>FN1 레이어</tc_kb6>
+		<tc_kb7>FN2 레이어</tc_kb7>
+		<tc_kb8>Tap</tc_kb8>
+		<tc_kb9>기본 레이어</tc_kb9>
+		<tc_kb10>현재</tc_kb10>
+		<tc_kb11>키 기능이 선택되지 않았습니다.</tc_kb11>
+		<tc_kb12>감도</tc_kb12>
+		<tc_kb13>키 재설정</tc_kb13>
+		<tc_kb14>自动识别系统</tc_kb14>
+
+		<tc_kb_led1>항상 켜짐 </tc_kb_led1>
+		<tc_kb_led2>숨쉬기 </tc_kb_led2>
+		<tc_kb_led3>무지개 </tc_kb_led3>
+		<tc_kb_led4>반응(가로) </tc_kb_led4>
+		<tc_kb_led5>빗방울</tc_kb_led5>
+		<tc_kb_led6>무지개 룰렛</tc_kb_led6>
+		<tc_kb_led7>반응(파동)</tc_kb_led7>
+		<tc_kb_led8>별빛</tc_kb_led8>
+		<tc_kb_led9>踏雪无痕</tc_kb_led9>
+		<tc_kb_led10>스네이크</tc_kb_led10>
+		<tc_kb_led11>스네이크</tc_kb_led11>
+		<tc_kb_led12>반응</tc_kb_led12>
+		<tc_kb_led13>라인 웨이브</tc_kb_led13>
+		<tc_kb_led14>左右扫描</tc_kb_led14>
+		<tc_kb_led15>무지개 바람개비</tc_kb_led15>
+		<tc_kb_led16>무지개 폭포</tc_kb_led16>
+		<tc_kb_led17>꽃잎</tc_kb_led17>
+		<tc_kb_led18>旋转风暴</tc_kb_led18>
+		<tc_kb_led19>사용자 정의 모드</tc_kb_led19>
+		<tc_kb_led20>끄기</tc_kb_led20>
+
+		<tc_game1>FN+1</tc_game1>
+		<tc_game2>FN+2</tc_game2>
+		<tc_game3>FN+3</tc_game3>
+		<tc_game4>FN+4</tc_game4>
+		<tc_game5>FN+5</tc_game5>
+
+		<tc_music1>음악</tc_music1>
+		<tc_music2>민감도</tc_music2>
+		<tc_music3>키보드 백라이트가 시스템 소리 출력에 따라 변화합니다.</tc_music3>
+		<tc_music4>단색</tc_music4>
+		<tc_music5>혼색</tc_music5>
+		<tc_music6>오픈</tc_music6>
+		<tc_music7>닫기</tc_music7>
+		<tc_music8>효과</tc_music8>
+		<tc_music9>부드럽게</tc_music9>
+		<tc_music10></tc_music10>
+
+		<tc_music_mode1>Audio dance - soft</tc_music_mode1>
+		<tc_music_mode2>Dazzling - rock</tc_music_mode2>
+		<tc_music_mode3>Clouds rise and snow fly - regular</tc_music_mode3>
+		<tc_music_mode4>Light Field Change - voice</tc_music_mode4>
+		<tc_music_mode5>The gurgling stream - regular</tc_music_mode5>
+		<tc_music_mode6>Blooming - passion</tc_music_mode6>
+		<tc_music_mode7>Pearl falling jade plate - regular</tc_music_mode7>
+		<tc_music_mode8>Clouds follow the moon - passion</tc_music_mode8>
+		<tc_music_mode9>Mountains and Flowing Waters - regular</tc_music_mode9>
+		<tc_music_mode10>Raining like silk - regular</tc_music_mode10>
+	</config>
+</root>

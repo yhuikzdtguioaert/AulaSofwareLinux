@@ -1,0 +1,14 @@
+;每一行是一个按键单元，文件必须以ansi格式保存，按键名称不区分大小写
+;若只有某些行指定了颜色，则驱动会给未指定颜色的单元自动计算过渡色
+o:255,0,0
+9,0,i,k,l,p
+f8,8,u,j,m,<,>,;,[,-
+f7,7,y,h,n,m,?,',],=,f9
+f6,6,t,g,b,ralt,f10
+f5,5,r,f,v,space,fn,app,rshift,k56,enter,|,back,f11:0,255,0
+f4,4,e,d,c,rctrl,del,ins,f12
+f3,3,w,s,x,left,up,end,home,print
+f2,2,q,a,z,alt,down,right,pgdn,pgup,scroll,num4,num7
+f1,1,win,num0,num1,num2,num5,num8,numlock,num/,pause,mute,cal
+esc,~,tab,caps,shift,k45,ctrl,num.,num3,num6,num9,num*,num-,num+,numenter,vol+,vol-:0,0,255
+

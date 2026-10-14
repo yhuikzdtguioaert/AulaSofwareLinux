@@ -1,0 +1,262 @@
+<?xml version="1.0" encoding="utf-16"?>
+<root>
+	<config>
+		
+                                     <tc_config>配置</tc_config>
+		<tc_exit>退出</tc_exit>
+		<tc_web></tc_web>
+		<tc_ok>確認</tc_ok>
+		<tc_restore>恢復預設</tc_restore>
+		<tc_cancel>取消</tc_cancel>
+		<tc_apply>儲存</tc_apply>
+
+		<tc_vkb1>主鍵區</tc_vkb1>
+		<tc_vkb2>控制鍵</tc_vkb2>
+		<tc_vkb3>功能鍵區</tc_vkb3>
+		<tc_vkb4>數字鍵區</tc_vkb4>
+
+		
+		<tc_update1>檢測到有新版固件，是否更新？（升級後請手動拔插一次鍵盤）</tc_update1>  
+		<tc_update2>檢測到有新版驅動，是否更新？</tc_update2>  
+		<tc_update3>當前已經是最新版本</tc_update3>  
+		<tc_update4>正在下載</tc_update4>  
+		<tc_update5>更新出錯</tc_update5>  
+		<tc_update6>固件更新</tc_update6>  
+		<tc_update7>驅動更新</tc_update7>  
+		<tc_update8>請先將設備切換到USB連接</tc_update8>
+
+		
+		<tc_macro_msg1>新建目錄</tc_macro_msg1>  
+		<tc_macro_msg2>新建巨集</tc_macro_msg2>  
+		<tc_macro_msg3>請輸入名稱</tc_macro_msg3>  
+		<tc_macro_msg4>開始錄製</tc_macro_msg4>  
+		<tc_macro_msg5>停止錄製</tc_macro_msg5>  
+		<tc_macro_msg6>刪除</tc_macro_msg6>  
+		<tc_macro_msg7>按鍵</tc_macro_msg7>  
+		<tc_macro_msg8>編輯巨集</tc_macro_msg8>  
+		<tc_macro_msg9>巨集編輯面板</tc_macro_msg9>  
+		<tc_macro_msg10>開始時間</tc_macro_msg10>  
+		<tc_macro_msg11>持續時間</tc_macro_msg11>  
+		<tc_macro_msg12>結束時間</tc_macro_msg12>  
+		<tc_macro_msg13>視圖比例</tc_macro_msg13>  
+		<tc_macro_msg14>預覽</tc_macro_msg14>  
+		<tc_macro_msg15>當前未含任何巨集，點擊創建</tc_macro_msg15>  
+		<tc_macro_msg16>插入</tc_macro_msg16>  
+		<tc_macro_msg17>執行次數</tc_macro_msg17>  
+		<tc_macro_msg18>循環直到按鍵鬆開</tc_macro_msg18>  
+		<tc_macro_msg19>循環直到任意按鍵按下</tc_macro_msg19>  
+		<tc_macro_msg20>水平移動</tc_macro_msg20>  
+		<tc_macro_msg21>垂直移動</tc_macro_msg21>  
+		<tc_macro_msg22>然後等待</tc_macro_msg22>  
+		<tc_macro_msg23>雙擊修改條目，回車結束修改</tc_macro_msg23>  
+		<tc_macro_msg24>檢測到有重複的開始時間，每個按鍵的開始時間必須不一樣</tc_macro_msg24>  
+		<tc_macro_msg25>新建子目錄</tc_macro_msg25>
+
+		
+		<tc_PL>播放/暫停</tc_PL>  
+		<tc_stop>停止播放</tc_stop>  
+		<tc_pre_media>上一曲</tc_pre_media>  
+		<tc_next_media>下一曲</tc_next_media>  
+		<tc_vol_up>音量+</tc_vol_up>  
+		<tc_vol_dw>音量-</tc_vol_dw>  
+		<tc_mute>靜音</tc_mute>  
+		<tc_briup>螢幕亮度+</tc_briup>  
+		<tc_bridn>螢幕亮度-</tc_bridn>  
+
+		<tc_kbmedia_mail>郵件</tc_kbmedia_mail>  
+		<tc_kbmedia_main>瀏覽器</tc_kbmedia_main>  
+		<tc_kbmedia_explore>我的電腦</tc_kbmedia_explore>  
+		<tc_kbmedia_cal>計算器</tc_kbmedia_cal>  
+		<tc_kbmedia_favor>收藏夾</tc_kbmedia_favor>  
+		<tc_kbmedia_msel>播放器</tc_kbmedia_msel>
+
+		
+                                     <tc_msfun>滑鼠按鍵</tc_msfun>  
+		<tc_click>左鍵</tc_click>  
+		<tc_menu>右鍵</tc_menu>  
+		<tc_middle>中鍵</tc_middle>  
+		<tc_forward>前進</tc_forward>  
+		<tc_back>後退</tc_back>  
+		<tc_scrollup>上滾</tc_scrollup>  
+		<tc_scrolldown>下滾</tc_scrolldown>  
+		<tc_dbclick>左鍵雙擊</tc_dbclick>  
+		<tc_rdbclick>右鍵雙擊</tc_rdbclick>  
+		<tc_mac_def>巨集</tc_mac_def>  
+		<tc_key_off>無功能</tc_key_off>  
+
+		<tc_msg1>全域設定</tc_msg1>  
+		<tc_msg2>設備型號</tc_msg2>  
+		<tc_msg3>韌體版本</tc_msg3>  
+		<tc_msg4>軟體版本</tc_msg4>  
+		<tc_msg5>剩餘電量</tc_msg5>  
+		<tc_msg6>當點擊X按鈕時</tc_msg6>  
+		<tc_msg7>直接退出</tc_msg7>  
+		<tc_msg8>縮小到右下角</tc_msg8>  
+		<tc_msg9>設備</tc_msg9>  
+		<tc_msg10>語言</tc_msg10>  
+		<tc_msg11>開機自動執行</tc_msg11>  
+		<tc_msg12>開</tc_msg12>  
+		<tc_msg13>關</tc_msg13>  
+		<tc_msg14>自訂顏色</tc_msg14>  
+		<tc_msg15>新增</tc_msg15>  
+		<tc_msg16>確認要刪除嗎？</tc_msg16>  
+		<tc_msg17>確認要恢復出廠設定嗎？</tc_msg17>  
+		<tc_msg18>按鍵指派</tc_msg18>  
+		<tc_msg19>巨集數量已達最大值</tc_msg19>  
+		<tc_msg20>自動檢查更新</tc_msg20>  
+		<tc_msg21>將設備恢復到出廠時的設定</tc_msg21>  
+		<tc_msg22>亮度</tc_msg22>  
+		<tc_msg23>速度</tc_msg23>  
+		<tc_msg24>顏色</tc_msg24>  
+		<tc_msg25>多彩</tc_msg25>  
+		<tc_msg26>設定檔</tc_msg26>  
+		<tc_msg27>設定</tc_msg27>  
+		<tc_msg28>常用命令</tc_msg28>  
+		<tc_msg29>鍵盤</tc_msg29>  
+		<tc_msg30>滑鼠</tc_msg30>  
+		<tc_msg31>多媒體</tc_msg31>  
+		<tc_msg32>組合鍵</tc_msg32>  
+		<tc_msg33>請輸入一個單鍵或組合鍵</tc_msg33>  
+		<tc_msg34>在無線模式下，設備空閒指定的時間後會自動進入休眠狀態</tc_msg34>  
+		<tc_msg35>正在查找設備，請連接您的設備，若是無線設備請按一下按鍵解除休眠狀態</tc_msg35>  
+		<tc_msg36>秒</tc_msg36>  
+		<tc_msg37>分鐘</tc_msg37>  
+		<tc_msg38>毫秒</tc_msg38>  
+		<tc_msg39>重新命名</tc_msg39>  
+		<tc_msg40>匯入</tc_msg40>  
+		<tc_msg41>匯出</tc_msg41>  
+		<tc_msg42>複製</tc_msg42>  
+		<tc_msg43>請輸入按鍵</tc_msg43>  
+		<tc_msg44>設備已休眠或斷開連接</tc_msg44>  
+		<tc_msg45>設備資訊</tc_msg45>  
+		<tc_msg46>語言</tc_msg46>  
+		<tc_msg47>啟動</tc_msg47>  
+		<tc_msg48>退出</tc_msg48>  
+		<tc_msg49>休眠</tc_msg49>  
+		<tc_msg50>恢復</tc_msg50>  
+		<tc_msg51>更新</tc_msg51>  
+		<tc_msg52>請稍等，正在更新數據.....</tc_msg52>  
+		<tc_msg53>設定出錯，設備忙或有無線干擾，請稍後重試</tc_msg53>  
+		<tc_msg54>按鍵去抖</tc_msg54>  
+		<tc_msg55>檔</tc_msg55>  
+		<tc_msg56>新建</tc_msg56>  
+		<tc_msg57>正在取消</tc_msg57>  
+		<tc_msg58>設備應答慢，可能有無線干擾，請將鍵盤和接收器盡量靠近</tc_msg58>
+		<tc_cmd1>关闭窗口</tc_cmd1>
+		<tc_cmd2>锁定计算机</tc_cmd2>
+		<tc_cmd3>运行命令</tc_cmd3>
+		<tc_cmd4>显示桌面</tc_cmd4>
+		<tc_cmd5>放大</tc_cmd5>
+		<tc_cmd6>缩小</tc_cmd6>
+		<tc_cmd7>任务管理器</tc_cmd7>
+		<tc_cmd8>撤销</tc_cmd8>
+		<tc_cmd9>保存</tc_cmd9>
+		<tc_cmd10></tc_cmd10>
+		<tc_cmd11>锁Win键</tc_cmd11>
+		<tc_cmd12>锁键盘</tc_cmd12>
+		<tc_cmd13>复位键盘</tc_cmd13>
+
+		
+                                     <tc_ms1>DPI級數</tc_ms1>  
+		<tc_ms2>DPI 鎖定</tc_ms2>  
+		<tc_ms3>三連發</tc_ms3>  
+		<tc_ms4>RGB打開/關閉</tc_ms4>  
+		<tc_ms5>燈效切換</tc_ms5>  
+		<tc_ms6>回報率切換</tc_ms6>  
+		<tc_ms7>模式切換</tc_ms7>  
+		<tc_ms8>DPI循環</tc_ms8>  
+		<tc_ms9>火力鍵</tc_ms9>  
+		<tc_ms10>開火次數 ( 0-255 )</tc_ms10>  
+		<tc_ms11>開火間隔 ( 5-255 )</tc_ms11>  
+		<tc_ms12>說明：間隔值越小，開火速度越快，開火次數為 0 則火力鍵按下不鬆開時會持續開</tc_ms12>  
+		<tc_ms13>回報率</tc_ms13>  
+		<tc_ms14>XY軸獨立設置</tc_ms14>  
+		<tc_ms15>請保留至少一個鍵為「左鍵」功能</tc_ms15>  
+		<tc_ms16>燈效列表</tc_ms16>  
+		<tc_ms17>方向</tc_ms17>  
+		<tc_ms18>滑鼠移動速度</tc_ms18>  
+		<tc_ms19>提高指針精確度</tc_ms19>  
+		<tc_ms20>滾動速度</tc_ms20>  
+		<tc_ms21>一次滾動一頁</tc_ms21>  
+		<tc_ms22>雙擊速度</tc_ms22>  
+		<tc_ms23>通知</tc_ms23>  
+		<tc_ms24>切換 DPI 時顯示通知</tc_ms24>
+
+		<tc_ms_led1>混彩流光</tc_ms_led1>
+		<tc_ms_led2>单色常亮</tc_ms_led2>
+		<tc_ms_led3>呼吸</tc_ms_led3>
+		<tc_ms_led4>拖尾</tc_ms_led4>
+		<tc_ms_led5>霓虹</tc_ms_led5>
+		<tc_ms_led6>混彩常亮</tc_ms_led6>
+		<tc_ms_led7>闪烁</tc_ms_led7>
+		<tc_ms_led8>繁星点点</tc_ms_led8>
+		<tc_ms_led9>七彩波浪</tc_ms_led9>
+		<tc_ms_led10>关闭</tc_ms_led10>
+
+		
+                                     <tc_kb1>鍵盤燈效</tc_kb1>  
+		<tc_kb2>請先選擇一個按鍵</tc_kb2>  
+		<tc_kb3>顏色組</tc_kb3>  
+		<tc_kb4>按住左鍵移動滑鼠可框選多個按鍵</tc_kb4>  
+		<tc_kb5>預設按鍵層</tc_kb5>  
+		<tc_kb6>FN1層</tc_kb6>  
+		<tc_kb7>FN2層</tc_kb7>  
+		<tc_kb8>Tap</tc_kb8>  
+		<tc_kb9>預設</tc_kb9>  
+		<tc_kb10>當前</tc_kb10>  
+		<tc_kb11>未選擇任何按鍵功能</tc_kb11>  
+		<tc_kb12>靈敏度</tc_kb12>  
+		<tc_kb13>復位按鍵</tc_kb13>  
+		<tc_kb14>自動識別系統</tc_kb14>
+
+		
+                                     <tc_kb_led1>常亮模式</tc_kb_led1>  
+		<tc_kb_led2>呼吸模式</tc_kb_led2>  
+		<tc_kb_led3>夢幻彩虹</tc_kb_led3>  
+		<tc_kb_led4>一觸即發</tc_kb_led4>  
+		<tc_kb_led5>雨中漫步</tc_kb_led5>  
+		<tc_kb_led6>彩虹輪盤</tc_kb_led6>  
+		<tc_kb_led7>漣漪擴散</tc_kb_led7>  
+		<tc_kb_led8>繁星點點</tc_kb_led8>  
+		<tc_kb_led9>踏雪無痕</tc_kb_led9>  
+		<tc_kb_led10>川流不息</tc_kb_led10>  
+		<tc_kb_led11>隨波逐流</tc_kb_led11>  
+		<tc_kb_led12>如影隨形</tc_kb_led12>  
+		<tc_kb_led13>正弦光波</tc_kb_led13>  
+		<tc_kb_led14>左右掃描</tc_kb_led14>  
+		<tc_kb_led15>旋轉風車</tc_kb_led15>  
+		<tc_kb_led16>七彩瀑布</tc_kb_led16>  
+		<tc_kb_led17>花開富貴</tc_kb_led17>  
+		<tc_kb_led18>旋轉風暴</tc_kb_led18>  
+		<tc_kb_led19>自定義模式</tc_kb_led19>  
+		<tc_kb_led20>關閉</tc_kb_led20>
+		<tc_game1>FN+1</tc_game1>
+		<tc_game2>FN+2</tc_game2>
+		<tc_game3>FN+3</tc_game3>
+		<tc_game4>FN+4</tc_game4>
+		<tc_game5>FN+5</tc_game5>
+
+		
+                                      <tc_music1>音樂</tc_music1>  
+		<tc_music2>增益</tc_music2>  
+		<tc_music3>鍵盤燈光隨著系統聲音的節奏而改變</tc_music3>  
+		<tc_music4>單色</tc_music4>  
+		<tc_music5>混色</tc_music5>  
+		<tc_music6>開啟</tc_music6>  
+		<tc_music7>關閉</tc_music7>  
+		<tc_music8>效果</tc_music8>  
+		<tc_music9>平滑</tc_music9>  
+		<tc_music10>自動計算增益</tc_music10>  
+
+		<tc_music_mode1>音頻輕舞 - 輕柔</tc_music_mode1>  
+		<tc_music_mode2>光彩奪目 - 搖滾</tc_music_mode2>  
+		<tc_music_mode3>雲起雪飛 - 常規</tc_music_mode3>  
+		<tc_music_mode4>光場變化 - 人聲</tc_music_mode4>  
+		<tc_music_mode5>溪水潺潺 - 常規</tc_music_mode5>  
+		<tc_music_mode6>百花爭豔 - 激情</tc_music_mode6>  
+		<tc_music_mode7>珠落玉盤 - 搖滾</tc_music_mode7>  
+		<tc_music_mode8>彩雲逐月 - 激情</tc_music_mode8>  
+		<tc_music_mode9>高山流水 - 激情</tc_music_mode9>  
+		<tc_music_mode10>飄雨如絲 - 常規</tc_music_mode10>
+	</config>
+</root>

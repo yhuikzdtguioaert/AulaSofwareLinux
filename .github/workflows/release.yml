@@ -1,0 +1,82 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to build and publish, e.g. v0.1.0'
+        required: true
+
+permissions:
+  contents: write
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  release:
+    name: Build and publish
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install desktop headers
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libxkbcommon-dev libwayland-dev libgl1-mesa-dev \
+            libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev \
+            libx11-dev libxrandr-dev libxi-dev libxcursor-dev
+
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Test
+        run: cargo test --all-targets
+
+      - name: Build
+        run: cargo build --release
+
+      - name: Package
+        id: package
+        run: |
+          tag="${{ github.event.inputs.tag || github.ref_name }}"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+          # The binary looks for assets/ next to itself, so ship them together.
+          stage=dist/aula
+          mkdir -p "$stage"
+          cp target/release/aula "$stage/"
+          cp -r assets udev "$stage/"
+          cp README.md LICENSE install.sh "$stage/"
+          chmod +x "$stage/install.sh"
+
+          tar -C dist -czf aula-linux-x86_64.tar.gz aula
+          sha256sum aula-linux-x86_64.tar.gz > aula-linux-x86_64.tar.gz.sha256
+          ls -lh aula-linux-x86_64.tar.gz
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.package.outputs.tag }}
+          name: aula ${{ steps.package.outputs.tag }}
+          generate_release_notes: true
+          files: |
+            aula-linux-x86_64.tar.gz
+            aula-linux-x86_64.tar.gz.sha256
+          body: |
+            Linux control software for AULA mechanical keyboards.
+
+            ## Install
+
+            ```bash
+            curl -fsSL https://github.com/${{ github.repository }}/releases/latest/download/aula-linux-x86_64.tar.gz | tar xz -C ~/.local/share && ~/.local/share/aula/install.sh
+            ```
+
+            The installer asks for `sudo` once, to place a udev rule in
+            `/etc/udev/rules.d/` — without it `/dev/hidraw*` is root-only.
+            Replug the keyboard afterwards, then run `aula`.
+
+            Supported: F75, F87, F87 PRO, F99, F99 Pro, H108 (wired and wireless).

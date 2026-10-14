@@ -1,0 +1,90 @@
+[
+  {
+    "id": "f75-fr",
+    "kind": "kb",
+    "title": "AULA F75",
+    "short": "F75",
+    "variant": "fr",
+    "vid": "0x258a",
+    "pid": "0x010C",
+    "psd": "3,0,0,0,0,cd",
+    "package": "inno_AULA_F75_Setup_v2.0_20260514"
+  },
+  {
+    "id": "f87-1",
+    "kind": "kb",
+    "title": "AULA F87 PRO",
+    "short": "F87",
+    "variant": "1",
+    "vid": "0x258a",
+    "pid": "0x010C",
+    "psd": "3,0,0,0,0,8f",
+    "package": "inno_AULA_F87_Software"
+  },
+  {
+    "id": "f87-pro-f87pro",
+    "kind": "kb",
+    "title": "AULA F87 PRO",
+    "short": "F87 PRO",
+    "variant": "F87PRO",
+    "vid": "0x258a",
+    "pid": "0x010C",
+    "psd": "3,0,0,0,1,b",
+    "package": "inno_AULA_F87_Software"
+  },
+  {
+    "id": "f87-pro-wired-wired",
+    "kind": "kb",
+    "title": "AULA F87 PRO",
+    "short": "F87 PRO Wired",
+    "variant": "wired",
+    "vid": "0x258a",
+    "pid": "0x010C",
+    "psd": "3,0,0,0,0,a9",
+    "package": "inno_AULA_F87_Software"
+  },
+  {
+    "id": "f99-1",
+    "kind": "kb",
+    "title": "AULA F99",
+    "short": "F99",
+    "variant": "1",
+    "vid": "0x258a",
+    "pid": "0x010C",
+    "psd": "3,0,0,0,0,A4",
+    "package": "inno_AULA_F99_Setup_v2.0"
+  },
+  {
+    "id": "f99-pro-f99pro",
+    "kind": "kb",
+    "title": "AULA F99",
+    "short": "F99 Pro",
+    "variant": "F99Pro",
+    "vid": "0x258a",
+    "pid": "0x010C",
+    "psd": "3,0,0,0,1,58",
+    "package": "inno_AULA_F99_Setup_v2.0"
+  },
+  {
+    "id": "f99-wired-wired",
+    "kind": "kb",
+    "title": "AULA F99",
+    "short": "F99 Wired",
+    "variant": "wired",
+    "vid": "0x258a",
+    "pid": "0x010C",
+    "psd": "3,0,0,0,0,9A",
+    "package": "inno_AULA_F99_Setup_v2.0"
+  },
+  {
+    "id": "h108-1",
+    "kind": "kb",
+    "title": "AULA H108",
+    "short": "H108",
+    "variant": "1",
+    "vid": "0x258a",
+    "pid": "0x010C",
+    "psd": "3,0,0,0,3,7C",
+    "package": "inno_AULA_H108_Setup_v2.0_20251022_1"
+  }
+]

@@ -1,0 +1,298 @@
+<?xml version="1.0" encoding="utf-16"?>
+<root>
+	<config>
+		<tc_config>配置</tc_config>
+		<tc_exit>退出</tc_exit>
+		<tc_web></tc_web>
+		<tc_ok>确认</tc_ok>
+		<tc_restore>恢复默认</tc_restore>
+		<tc_cancel>取消</tc_cancel>
+		<tc_apply>保存</tc_apply>
+		<tc_tap_tips>请按 Fn + W 将键盘切换到Windows模式下使用驱动</tc_tap_tips>
+
+		<tc_update1>检测到有新版固件，是否更新？
+（注:更新过程中,请勿关闭窗口以及拔插键盘,升级成功后,请手动拔插一次键盘!）</tc_update1>
+		<tc_update2>检测到有新版驱动，是否更新？</tc_update2>
+		<tc_update3>当前已经是最新版本</tc_update3>
+		<tc_update4>正在下载</tc_update4>
+		<tc_update5>更新出错</tc_update5>
+		<tc_update6>固件更新</tc_update6>
+		<tc_update7>驱动更新</tc_update7>
+		<tc_update8>请先将设备切换到USB连接</tc_update8>
+
+		<tc_macro_msg1>新建文件夹</tc_macro_msg1>
+		<tc_macro_msg2>新建宏</tc_macro_msg2>
+		<tc_macro_msg3>请输入名称</tc_macro_msg3>
+		<tc_macro_msg4>开始录制</tc_macro_msg4>
+		<tc_macro_msg5>停止录制</tc_macro_msg5>
+		<tc_macro_msg6>删除</tc_macro_msg6>
+		<tc_macro_msg7>按键</tc_macro_msg7>
+		<tc_macro_msg8>编辑宏</tc_macro_msg8>
+		<tc_macro_msg9>宏编辑面板</tc_macro_msg9>
+		<tc_macro_msg10>开始时间</tc_macro_msg10>
+		<tc_macro_msg11>持续时间</tc_macro_msg11>
+		<tc_macro_msg12>结束时间</tc_macro_msg12>
+		<tc_macro_msg13>视图比例</tc_macro_msg13>
+		<tc_macro_msg14>预览</tc_macro_msg14>
+		<tc_macro_msg15>当前未含任何宏，点击创建</tc_macro_msg15>
+		<tc_macro_msg16>插入</tc_macro_msg16>
+		<tc_macro_msg17>执行次数</tc_macro_msg17>
+		<tc_macro_msg18>循环直到按键松开</tc_macro_msg18>
+		<tc_macro_msg19>循环直到任意按键按下</tc_macro_msg19>
+		<tc_macro_msg20>水平移动</tc_macro_msg20>
+		<tc_macro_msg21>垂直移动</tc_macro_msg21>
+		<tc_macro_msg22>然后等待</tc_macro_msg22>
+		<tc_macro_msg23>双击修改条目，回车结束修改</tc_macro_msg23>
+		<tc_macro_msg24>检测到有重复的开始时间，每个按键的开始时间必须不一样</tc_macro_msg24>
+
+		<tc_PL>播放/暂停</tc_PL>
+		<tc_stop>停止播放</tc_stop>
+		<tc_pre_media>上一曲</tc_pre_media>
+		<tc_next_media>下一曲</tc_next_media>
+		<tc_vol_up>音量 +</tc_vol_up>
+		<tc_vol_dw>音量 -</tc_vol_dw>
+		<tc_mute>静音</tc_mute>
+		<tc_briup>屏幕亮度 +</tc_briup>
+		<tc_bridn>屏幕亮度 -</tc_bridn>
+
+		<tc_kbmedia_mail>邮件</tc_kbmedia_mail>
+		<tc_kbmedia_main>浏览器</tc_kbmedia_main>
+		<tc_kbmedia_explore>我的电脑</tc_kbmedia_explore>
+		<tc_kbmedia_cal>计算器</tc_kbmedia_cal>
+		<tc_kbmedia_favor>收藏夹</tc_kbmedia_favor>
+		<tc_kbmedia_msel>播放器</tc_kbmedia_msel>
+
+		<tc_msfun>鼠标按键</tc_msfun>	
+		<tc_click>左键</tc_click>
+		<tc_menu>右键</tc_menu>
+		<tc_middle>中键</tc_middle>
+		<tc_forward>前进</tc_forward>
+		<tc_back>后退</tc_back>
+		<tc_scrollup>上滚</tc_scrollup>
+		<tc_scrolldown>下滚</tc_scrolldown>
+		<tc_dbclick>左键双击</tc_dbclick>
+		<tc_rdbclick>右键双击</tc_rdbclick>
+		<tc_mac_def>宏</tc_mac_def>
+		<tc_key_off>无功能</tc_key_off>
+
+		<tc_msg1>全局设置</tc_msg1>
+		<tc_msg2>设备型号</tc_msg2>
+		<tc_msg3>固件版本</tc_msg3>
+		<tc_msg4>软件版本</tc_msg4>
+		<tc_msg5>剩余电量</tc_msg5>
+		<tc_msg6>当点击X按钮时</tc_msg6>
+		<tc_msg7>直接退出</tc_msg7>
+		<tc_msg8>缩小到右下角</tc_msg8>
+		<tc_msg9>设备</tc_msg9>
+		<tc_msg10>语言</tc_msg10>
+		<tc_msg11>开机自动运行</tc_msg11>
+		<tc_msg12>开</tc_msg12>
+		<tc_msg13>关</tc_msg13>
+		<tc_msg14>自定义颜色</tc_msg14>
+		<tc_msg15>添加</tc_msg15>
+		<tc_msg16>确认要删除吗？</tc_msg16>
+		<tc_msg17>确认要恢复出厂设置吗？</tc_msg17>
+		<tc_msg18>按键指派</tc_msg18>
+		<tc_msg19>宏数量已经达到最大值</tc_msg19>
+		<tc_msg20>自动检查更新</tc_msg20>
+		<tc_msg21>将设备恢复到出厂时的设定</tc_msg21>
+		<tc_msg22>亮度</tc_msg22>
+		<tc_msg23>速度</tc_msg23>
+		<tc_msg24>颜色</tc_msg24>
+		<tc_msg25>多彩</tc_msg25>
+		<tc_msg26>配置文件</tc_msg26>
+		<tc_msg27>配置</tc_msg27>
+		<tc_msg28>常用命令</tc_msg28>
+		<tc_msg29>键盘</tc_msg29>
+		<tc_msg30>鼠标</tc_msg30>
+		<tc_msg31>多媒体</tc_msg31>
+		<tc_msg32>组合键</tc_msg32>
+		<tc_msg33>请输入一个单键或组合键</tc_msg33>
+		<tc_msg34>在无线模式下，设备空闲指定的时间后会自动进入休眠状态</tc_msg34>
+		<tc_msg35>正在查找设备，请连接您的设备，若是无线设备请按一下按键解除休眠状态</tc_msg35>
+		<tc_msg36>秒</tc_msg36>
+		<tc_msg37>分钟</tc_msg37>
+		<tc_msg38>毫秒</tc_msg38>
+		<tc_msg39>重命名</tc_msg39>
+		<tc_msg40>导入</tc_msg40>
+		<tc_msg41>导出</tc_msg41>
+		<tc_msg42>复制</tc_msg42>
+		<tc_msg43>请输入按键</tc_msg43>
+		<tc_msg44>设备已休眠或断开连接</tc_msg44>
+		<tc_msg45>设备信息</tc_msg45>
+		<tc_msg46>语言</tc_msg46>
+		<tc_msg47>启动</tc_msg47>
+		<tc_msg48>退出</tc_msg48>
+		<tc_msg49>休眠</tc_msg49>
+		<tc_msg50>恢复</tc_msg50>
+		<tc_msg51>更新</tc_msg51>
+		<tc_msg52>请稍等，正在更新数据.....</tc_msg52>
+		<tc_msg53>设置出错，设备忙或有无线干扰，请稍后重试</tc_msg53>
+		<tc_msg54>按键去抖</tc_msg54>
+		<tc_msg55>档</tc_msg55>
+
+		<tc_cmd1>关闭窗口</tc_cmd1>
+		<tc_cmd2>锁定计算机</tc_cmd2>
+		<tc_cmd3>运行命令</tc_cmd3>
+		<tc_cmd4>显示桌面</tc_cmd4>
+		<tc_cmd5>放大</tc_cmd5>
+		<tc_cmd6>缩小</tc_cmd6>
+		<tc_cmd7>任务管理器</tc_cmd7>
+		<tc_cmd8>撤销</tc_cmd8>
+		<tc_cmd9>保存</tc_cmd9>
+		<tc_cmd10></tc_cmd10>
+		<tc_cmd11>锁Win键</tc_cmd11>
+		<tc_cmd12>锁键盘</tc_cmd12>
+		<tc_cmd13>复位键盘</tc_cmd13>
+
+		<tc_ms1>DPI级数</tc_ms1>
+		<tc_ms2>DPI 锁定</tc_ms2>
+		<tc_ms3>三连发</tc_ms3>
+		<tc_ms4>RGB打开/关闭</tc_ms4>
+		<tc_ms5>灯效切换</tc_ms5>
+		<tc_ms6>回报率切换</tc_ms6>
+		<tc_ms7>模式切换</tc_ms7>
+		<tc_ms8>DPI循环</tc_ms8>
+		<tc_ms9>火力键</tc_ms9>
+		<tc_ms10>开火次数 ( 0-255 )</tc_ms10>
+		<tc_ms11>开火间隔 ( 5-255 )</tc_ms11>
+		<tc_ms12>说明：间隔值越小，开火速度越快，开火次数为 0 则火力键按下不松开时会持续开</tc_ms12>
+		<tc_ms13>回报率</tc_ms13>
+		<tc_ms14>XY轴独立设置</tc_ms14>
+		<tc_ms15>请保留至少一个键为"左键"功能</tc_ms15>
+		<tc_ms16>灯效列表</tc_ms16>
+		<tc_ms17>方向</tc_ms17>
+		<tc_ms18>鼠标移动速度</tc_ms18>
+		<tc_ms19>提高指针精确度</tc_ms19>
+		<tc_ms20>滚动速度</tc_ms20>
+		<tc_ms21>一次滚动一页</tc_ms21>
+		<tc_ms22>双击速度</tc_ms22>
+		<tc_ms23>按键去抖</tc_ms23>
+		<tc_ms24></tc_ms24>
+
+		<tc_ms_led1>混彩流光</tc_ms_led1>
+		<tc_ms_led2>单色常亮</tc_ms_led2>
+		<tc_ms_led3>呼吸</tc_ms_led3>
+		<tc_ms_led4>拖尾</tc_ms_led4>
+		<tc_ms_led5>霓虹</tc_ms_led5>
+		<tc_ms_led6>混彩常亮</tc_ms_led6>
+		<tc_ms_led7>闪烁</tc_ms_led7>
+		<tc_ms_led8>繁星点点</tc_ms_led8>
+		<tc_ms_led9>七彩波浪</tc_ms_led9>
+		<tc_ms_led10>关闭</tc_ms_led10>
+
+		<tc_kb1>键盘灯效</tc_kb1>
+		<tc_kb2>请先选择一个按键</tc_kb2>
+		<tc_kb3>颜色组</tc_kb3>
+		<tc_kb4>按住左键移动鼠标可框选多个按键</tc_kb4>
+		<tc_kb5>默认按键层</tc_kb5>
+		<tc_kb6>FN1层</tc_kb6>
+		<tc_kb7>FN2层</tc_kb7>
+		<tc_kb8>Tap</tc_kb8>
+		<tc_kb9>默认</tc_kb9>
+		<tc_kb10>当前</tc_kb10>
+		<tc_kb11>未选择任何按键功能</tc_kb11>
+		<tc_kb12>灵敏度</tc_kb12>
+		<tc_kb13>复位按键</tc_kb13>
+		<tc_kb14>自动识别系统</tc_kb14>
+
+		<tc_kb_led1>常亮模式 </tc_kb_led1>
+		<tc_kb_led2>呼吸模式 </tc_kb_led2>
+		<tc_kb_led3>梦幻彩虹 </tc_kb_led3>
+		<tc_kb_led4>一触即发 </tc_kb_led4>
+		<tc_kb_led5>雨中漫步</tc_kb_led5>
+		<tc_kb_led6>彩虹轮盘</tc_kb_led6>
+		<tc_kb_led7>涟漪扩散</tc_kb_led7>
+		<tc_kb_led8>繁星点点</tc_kb_led8>
+		<tc_kb_led9>踏雪无痕</tc_kb_led9>
+		<tc_kb_led10>川流不息</tc_kb_led10>
+		<tc_kb_led11>随波逐流</tc_kb_led11>
+		<tc_kb_led12>如影随形</tc_kb_led12>
+		<tc_kb_led13>正弦光波</tc_kb_led13>
+		<tc_kb_led14>左右扫描</tc_kb_led14>
+		<tc_kb_led15>旋转风车</tc_kb_led15>
+		<tc_kb_led16>七彩瀑布</tc_kb_led16>
+		<tc_kb_led17>花开富贵</tc_kb_led17>
+		<tc_kb_led18>旋转风暴</tc_kb_led18>
+		<tc_kb_led19>自定义模式</tc_kb_led19>
+		<tc_kb_led20>关闭</tc_kb_led20>
+
+		<tc_game1>FN+1</tc_game1>
+		<tc_game2>FN+2</tc_game2>
+		<tc_game3>FN+3</tc_game3>
+		<tc_game4>FN+4</tc_game4>
+		<tc_game5>FN+5</tc_game5>
+
+		<tc_music1>音乐</tc_music1>
+		<tc_music2>增益系数</tc_music2>
+		<tc_music3>键盘灯光随着系统声音的节奏而改变</tc_music3>
+		<tc_music4>单色</tc_music4>
+		<tc_music5>混色</tc_music5>
+		<tc_music6>开启</tc_music6>
+		<tc_music7>关闭</tc_music7>
+		<tc_music8>效果</tc_music8>
+		<tc_music9>平滑</tc_music9>
+		<tc_music10></tc_music10>
+
+		<tc_music_mode1>音频轻舞 - 轻柔</tc_music_mode1>
+		<tc_music_mode2>光彩夺目 - 摇滚</tc_music_mode2>
+		<tc_music_mode3>云起雪飞 - 常规</tc_music_mode3>
+		<tc_music_mode4>光场变化 - 人声</tc_music_mode4>
+		<tc_music_mode5>溪水潺潺 - 常规</tc_music_mode5>
+		<tc_music_mode6>百花争艳 - 激情</tc_music_mode6>
+		<tc_music_mode7>珠落玉盘 - 摇滚</tc_music_mode7>
+		<tc_music_mode8>彩云逐月 - 激情</tc_music_mode8>
+		<tc_music_mode9>高山流水 - 激情</tc_music_mode9>
+		<tc_music_mode10>飘雨如丝 - 常规</tc_music_mode10>
+		<tc_music_mode11>跑马测试</tc_music_mode11>
+
+		<tc_yun1>共享中心</tc_yun1>
+		<tc_yun2>文件名称</tc_yun2>
+		<tc_yun3>文件描述</tc_yun3>
+		<tc_yun4>适用软件</tc_yun4>
+		<tc_yun5>上传用户</tc_yun5>
+		<tc_yun6>上传时间</tc_yun6>
+		<tc_yun7>下载</tc_yun7>
+		<tc_yun8>共享该宏</tc_yun8>
+		<tc_yun9>描述该宏的作用或使用注意事项</tc_yun9>
+		<tc_yun10>该宏可用在哪些游戏或软件上</tc_yun10>
+		<tc_yun11>下载成功，是否现在查看？</tc_yun11>
+		<tc_yun12>请登录</tc_yun12>
+		<tc_yun13>登录</tc_yun13>
+		<tc_yun14>退出登录</tc_yun14>
+		<tc_yun15>注册</tc_yun15>
+		<tc_yun16>用户名</tc_yun16>
+		<tc_yun17>密码</tc_yun17>
+		<tc_yun18>确认密码</tc_yun18>
+		<tc_yun19>邮箱</tc_yun19>
+		<tc_yun20>性别</tc_yun20>
+		<tc_yun21>男</tc_yun21>
+		<tc_yun22>女</tc_yun22>
+		<tc_yun23>该名称已被注册</tc_yun23>
+		<tc_yun24>该邮箱已被注册</tc_yun24>
+		<tc_yun25>请输入正确的邮箱</tc_yun25>
+		<tc_yun26>两次输入的密码不一致</tc_yun26>
+		<tc_yun27>密码长度请保持在6~20个字符</tc_yun27>
+		<tc_yun28>服务器未响应或网络连接出错</tc_yun28>
+		<tc_yun29>用户名或密码错误</tc_yun29>
+		<tc_yun30>注册成功</tc_yun30>
+		<tc_yun31>还没有账号，现在注册</tc_yun31>
+		<tc_yun32>下次自动登录</tc_yun32>
+		<tc_yun33>上传该配置到云空间</tc_yun33>
+		<tc_yun34>提交成功</tc_yun34>
+		<tc_yun35>我的云端配置文件</tc_yun35>
+		<tc_yun36>适用设备</tc_yun36>
+		<tc_yun37>个人中心</tc_yun37>
+		<tc_yun38>已有一个同名配置，是否覆盖？</tc_yun38>
+		<tc_yun39>建议反馈</tc_yun39>
+		<tc_yun40>您的联系方式</tc_yun40>
+		<tc_yun41>提交</tc_yun41>
+		<tc_yun42>修改密码</tc_yun42>
+		<tc_yun43>请输入旧密码</tc_yun43>
+		<tc_yun44>请输入新密码</tc_yun44>
+		<tc_yun45>请再次输入新密码</tc_yun45>
+		<tc_yun46>密码修改成功</tc_yun46>
+		<tc_yun47>该配置不适用于当前设备</tc_yun47>
+		<tc_yun48></tc_yun48>
+	</config>
+</root>

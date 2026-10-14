@@ -1,0 +1,4 @@
+ctrl,win,alt:shift,k45,alt:caps,z:tab,a,x:~,1,q,s,c:esc,2,w,d,v:3,e,f,b
+space,ralt,fn,app:c,v,b,n,m,<,>,?:f,g,h,j,k,l,;:t,y,u,i,o:6,7,8,9:f5,f6,f7
+num0,num.,numenter,num3:num+,num6,num2:num-,num9,num5,num1,right:vol+,num*,num8,num4,down:vol-,num/,num7,up,left,rctrl
+

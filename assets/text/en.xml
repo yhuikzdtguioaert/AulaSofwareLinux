@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="utf-16"?>
+<root>
+	<config>
+		<tc_config>Config</tc_config>
+		<tc_exit>Exit</tc_exit>
+		<tc_web></tc_web>
+		<tc_ok>OK</tc_ok>
+		<tc_restore>Reset</tc_restore>
+		<tc_cancel>Cancel</tc_cancel>
+		<tc_apply>Save</tc_apply>
+		<tc_tap_tips>Please press FN+W to switch the keyboard to Windows mode and use the driver</tc_tap_tips>
+
+		<tc_update1>A new version of firmware is detected, do you want to update or not?
+(Note: During the update process, please do not close the window and unplug the keyboard. After the successful upgrade, please manually unplug the keyboard once)</tc_update1>
+		<tc_update2>A new version of driver is detected. Do you want to update it now？</tc_update2>
+		<tc_update3>The software is currently the latest version.</tc_update3>
+		<tc_update4>Downloading</tc_update4>
+		<tc_update5>Update error</tc_update5>
+		<tc_update6>Firmware Update</tc_update6>
+		<tc_update7>Driver Update</tc_update7>
+		<tc_update8>Please switch the device to USB connection first</tc_update8>
+
+		<tc_macro_msg1>New folder</tc_macro_msg1>
+		<tc_macro_msg2>New macro</tc_macro_msg2>
+		<tc_macro_msg3>Please enter a name</tc_macro_msg3>
+		<tc_macro_msg4>Record</tc_macro_msg4>
+		<tc_macro_msg5>Stop</tc_macro_msg5>
+		<tc_macro_msg6>Delete</tc_macro_msg6>
+		<tc_macro_msg7>Key</tc_macro_msg7>
+		<tc_macro_msg8>Edit</tc_macro_msg8>
+		<tc_macro_msg9>Macro edit panel</tc_macro_msg9>
+		<tc_macro_msg10>Start</tc_macro_msg10>
+		<tc_macro_msg11>Holding time</tc_macro_msg11>
+		<tc_macro_msg12>End</tc_macro_msg12>
+		<tc_macro_msg13>View scale</tc_macro_msg13>
+		<tc_macro_msg14>Preview</tc_macro_msg14>
+		<tc_macro_msg15>There are currently no macros. Click to create</tc_macro_msg15>
+		<tc_macro_msg16>Insert</tc_macro_msg16>
+		<tc_macro_msg17>Cycle times</tc_macro_msg17>
+		<tc_macro_msg18>Cycle until the key released</tc_macro_msg18>
+		<tc_macro_msg19>Cycle until any key pressed</tc_macro_msg19>
+		<tc_macro_msg20>X Move</tc_macro_msg20>
+		<tc_macro_msg21>Y Move</tc_macro_msg21>
+		<tc_macro_msg22>Delay</tc_macro_msg22>
+		<tc_macro_msg23>Double click to modify the item</tc_macro_msg23>
+		<tc_macro_msg24>The same start time is detected</tc_macro_msg24>
+
+		<tc_PL>Play/Pause</tc_PL>
+		<tc_stop>Stop</tc_stop>
+		<tc_pre_media>Previous</tc_pre_media>
+		<tc_next_media>Next</tc_next_media>
+		<tc_vol_up>Volume +</tc_vol_up>
+		<tc_vol_dw>Volume -</tc_vol_dw>
+		<tc_mute>Mute</tc_mute>
+		<tc_briup>Screen +</tc_briup>
+		<tc_bridn>Screen -</tc_bridn>
+
+		<tc_kbmedia_mail>Email</tc_kbmedia_mail>
+		<tc_kbmedia_main>Home page</tc_kbmedia_main>
+		<tc_kbmedia_explore>My computer</tc_kbmedia_explore>
+		<tc_kbmedia_cal>Calculator</tc_kbmedia_cal>
+		<tc_kbmedia_favor>Favorites</tc_kbmedia_favor>
+		<tc_kbmedia_msel>Media Player</tc_kbmedia_msel>
+
+		<tc_click>Left Button</tc_click>
+		<tc_menu>Right Button</tc_menu>
+		<tc_middle>Middle Button</tc_middle>
+		<tc_forward>Forward</tc_forward>
+		<tc_back>Back</tc_back>
+		<tc_scrollup>Scroll Up</tc_scrollup>
+		<tc_scrolldown>Scroll Down</tc_scrolldown>
+		<tc_dclick>Double Click</tc_dclick>
+		<tc_mac_def>Macro</tc_mac_def>
+		<tc_key_off>Disable</tc_key_off>
+
+		<tc_msg1>Global</tc_msg1>
+		<tc_msg2>Device model</tc_msg2>
+		<tc_msg3>Firmware version</tc_msg3>
+		<tc_msg4>Software version</tc_msg4>
+		<tc_msg5>Battery</tc_msg5>
+		<tc_msg6>When you click the X button</tc_msg6>
+		<tc_msg7>Exit</tc_msg7>
+		<tc_msg8>Resides in the system tray area</tc_msg8>
+		<tc_msg9>Device</tc_msg9>
+		<tc_msg10>Language</tc_msg10>
+		<tc_msg11>Autorun</tc_msg11>
+		<tc_msg12>ON</tc_msg12>
+		<tc_msg13>OFF</tc_msg13>
+		<tc_msg14>Custom color</tc_msg14>
+		<tc_msg15>Add</tc_msg15>
+		<tc_msg16>Are you sure you want to delete？</tc_msg16>
+		<tc_msg17>Are you sure you want to restore？</tc_msg17>
+		<tc_msg18>Key assignment</tc_msg18>
+		<tc_msg19>The number of macros has reached the maximum</tc_msg19>
+		<tc_msg20>Automatically check for updates</tc_msg20>
+		<tc_msg21>Restore the device to the factory settings</tc_msg21>
+		<tc_msg22>Brightness</tc_msg22>
+		<tc_msg23>Speed</tc_msg23>
+		<tc_msg24>Color</tc_msg24>
+		<tc_msg25>Colourful</tc_msg25>
+		<tc_msg26>Profile</tc_msg26>
+		<tc_msg27>Profile</tc_msg27>
+		<tc_msg28>Commands</tc_msg28>
+		<tc_msg29>Keyboard</tc_msg29>
+		<tc_msg30>Mouse</tc_msg30>
+		<tc_msg31>Multimedia</tc_msg31>
+		<tc_msg32>Key combination</tc_msg32>
+		<tc_msg33>Please enter a single key or key combination</tc_msg33>
+		<tc_msg34>In wireless mode,keyboard will go into sleep after idle for a specified time</tc_msg34>
+		<tc_msg35>Please connect your device.</tc_msg35>
+		<tc_msg36>Second</tc_msg36>
+		<tc_msg37>Min</tc_msg37>
+		<tc_msg38>ms</tc_msg38>
+		<tc_msg39>Rename</tc_msg39>
+		<tc_msg40>Import</tc_msg40>
+		<tc_msg41>Export</tc_msg41>
+		<tc_msg42>Copy</tc_msg42>
+		<tc_msg43>Please enter a key</tc_msg43>
+		<tc_msg44>The device is asleep or disconnected</tc_msg44>
+		<tc_msg45>Device Info</tc_msg45>
+		<tc_msg46>Language</tc_msg46>
+		<tc_msg47>Startup</tc_msg47>
+		<tc_msg48>Exit</tc_msg48>
+		<tc_msg49>Sleep</tc_msg49>
+		<tc_msg50>Reset</tc_msg50>
+		<tc_msg51>Upgrade</tc_msg51>
+		<tc_msg52>Please wait.....</tc_msg52>
+		<tc_msg53>Setting error, device busy or wireless interference, please try again later</tc_msg53>
+		<tc_msg54>Debounce</tc_msg54>
+		<tc_msg55>Stage</tc_msg55>
+
+		<tc_cmd1>Close window</tc_cmd1>
+		<tc_cmd2>Lock computer</tc_cmd2>
+		<tc_cmd3>Run</tc_cmd3>
+		<tc_cmd4>Show desktop</tc_cmd4>
+		<tc_cmd5>Zoom in</tc_cmd5>
+		<tc_cmd6>Zoom out</tc_cmd6>
+		<tc_cmd7>Task manager</tc_cmd7>
+		<tc_cmd8>Undo</tc_cmd8>
+		<tc_cmd9>Save</tc_cmd9>
+		<tc_cmd10></tc_cmd10>
+		<tc_cmd11>Lock Win</tc_cmd11>
+		<tc_cmd12>Lock Keyboard</tc_cmd12>
+		<tc_cmd13>Reset</tc_cmd13>
+
+		<tc_ms1>DPI Stages</tc_ms1>
+		<tc_ms2>DPI Lock</tc_ms2>
+		<tc_ms3>Triple Click</tc_ms3>
+		<tc_ms4>Lighting ON/OFF</tc_ms4>
+		<tc_ms5>Switch Effect</tc_ms5>
+		<tc_ms6>Switch Polling Rate</tc_ms6>
+		<tc_ms7>Switch Mode</tc_ms7>
+		<tc_ms8>DPI Loop</tc_ms8>
+		<tc_ms9>Fire key</tc_ms9>
+		<tc_ms10>Loop ( 0-255 )</tc_ms10>
+		<tc_ms11>Intervals ( 5-255 )</tc_ms11>
+		<tc_ms12>Note：The smaller intervals value is, the faster speed of keystroke is.</tc_ms12>
+		<tc_ms13>Polling Rate</tc_ms13>
+		<tc_ms14>XY Independent</tc_ms14>
+		<tc_ms15>At least one button must be configured as "click"</tc_ms15>
+		<tc_ms16>Lighting</tc_ms16>
+		<tc_ms17>Direction</tc_ms17>
+		<tc_ms18>Mouse Sensitivity</tc_ms18>
+		<tc_ms19>Improve pointer precision</tc_ms19>
+		<tc_ms20>Scrolling Speed</tc_ms20>
+		<tc_ms21>Scroll One Page</tc_ms21>
+		<tc_ms22>Double-Click Speed</tc_ms22>
+		<tc_ms23>Debounce</tc_ms23>
+		<tc_ms24></tc_ms24>
+
+		<tc_ms_led1>Colorful Streaming</tc_ms_led1>
+		<tc_ms_led2>Steady</tc_ms_led2>
+		<tc_ms_led3>Breathing</tc_ms_led3>
+		<tc_ms_led4>Colorful Tail</tc_ms_led4>
+		<tc_ms_led5>Neon</tc_ms_led5>
+		<tc_ms_led6>Colorful Steady</tc_ms_led6>
+		<tc_ms_led7>Flicker</tc_ms_led7>
+		<tc_ms_led8>Stars twinkle</tc_ms_led8>
+		<tc_ms_led9>Wave</tc_ms_led9>
+		<tc_ms_led10>LED OFF</tc_ms_led10>
+
+		<tc_kb1>Light effect</tc_kb1>
+		<tc_kb2>Please select a key first</tc_kb2>
+		<tc_kb3>Color group</tc_kb3>
+		<tc_kb4>Press and hold the left button to move the mouse to select multiple keys</tc_kb4>
+		<tc_kb5>Default</tc_kb5>
+		<tc_kb6>FN1</tc_kb6>
+		<tc_kb7>FN2</tc_kb7>
+		<tc_kb8>Tap</tc_kb8>
+		<tc_kb9>Default</tc_kb9>
+		<tc_kb10>Current</tc_kb10>
+		<tc_kb11>No key function is selected</tc_kb11>
+		<tc_kb12>Sensitivity</tc_kb12>
+		<tc_kb13>Reset Key</tc_kb13>
+		<tc_kb14>Automatic detection</tc_kb14>
+
+		<tc_kb_led1>Fixed_on</tc_kb_led1>
+		<tc_kb_led2>Respire</tc_kb_led2>
+		<tc_kb_led3>Rainbow</tc_kb_led3>
+		<tc_kb_led4>Flash_away</tc_kb_led4>
+		<tc_kb_led5>Raindrops</tc_kb_led5>
+		<tc_kb_led6>Rainbow_wheel</tc_kb_led6>
+		<tc_kb_led7>Ripples_shining</tc_kb_led7>
+		<tc_kb_led8>Stars_twinkle</tc_kb_led8>
+		<tc_kb_led9>Shadow_disappear</tc_kb_led9>
+		<tc_kb_led10>Retro_snake</tc_kb_led10>
+		<tc_kb_led11>Neon_stream</tc_kb_led11>
+		<tc_kb_led12>Reaction</tc_kb_led12>
+		<tc_kb_led13>Sine_wave</tc_kb_led13>
+		<tc_kb_led14>Retinue scanning</tc_kb_led14>
+		<tc_kb_led15>Rotating windmill</tc_kb_led15>
+		<tc_kb_led16>Colorful waterfall</tc_kb_led16>
+		<tc_kb_led17>Blossoming</tc_kb_led17>
+		<tc_kb_led18>Rotating storm</tc_kb_led18>
+		<tc_kb_led19>Self-define</tc_kb_led19>
+		<tc_kb_led20>OFF</tc_kb_led20>
+		<tc_kb_led21></tc_kb_led21>
+		<tc_kb_led22></tc_kb_led22>
+
+		<tc_game1>FN+1</tc_game1>
+		<tc_game2>FN+2</tc_game2>
+		<tc_game3>FN+3</tc_game3>
+		<tc_game4>FN+4</tc_game4>
+		<tc_game5>FN+5</tc_game5>
+
+		<tc_music1>Music</tc_music1>
+		<tc_music2>Gain factor</tc_music2>
+		<tc_music3>The keyboard light changes with the rhythm of the system sound</tc_music3>
+		<tc_music4>Color</tc_music4>
+		<tc_music5>ColorFull</tc_music5>
+		<tc_music6>ON</tc_music6>
+		<tc_music7>OFF</tc_music7>
+		<tc_music8>Effect</tc_music8>
+		<tc_music9>Smoothness</tc_music9>
+		<tc_music10>Automatically calculate gain</tc_music10>
+
+		<tc_music_mode1>Audio dance - soft</tc_music_mode1>
+		<tc_music_mode2>Dazzling - rock</tc_music_mode2>
+		<tc_music_mode3>Clouds rise and snow fly - routine</tc_music_mode3>
+		<tc_music_mode4>Light Field Change - voice</tc_music_mode4>
+		<tc_music_mode5>The gurgling stream - regular</tc_music_mode5>
+		<tc_music_mode6>Blooming - passion</tc_music_mode6>
+		<tc_music_mode7>Pearl falling jade plate - rock</tc_music_mode7>
+		<tc_music_mode8>Clouds follow the moon - passion</tc_music_mode8>
+		<tc_music_mode9>Mountains and Flowing Waters - regular</tc_music_mode9>
+		<tc_music_mode10>Raining like silk - regular</tc_music_mode10>
+	</config>
+</root>

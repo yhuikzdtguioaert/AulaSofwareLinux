@@ -1,0 +1,9 @@
+U
+7,8,Y,I,H,J
+f6,6,T,G,B,N,M,K,O,9
+f5,5,R,F,V,space,<,L,P,0,f7
+f4,4,E,D,C,>,;,[,-,f8
+f3,3,W,S,X,RAlt,?,',],=,f9
+f2,2,Q,A,Z,alt,fn,app,rctrl,rshift,enter,|,back,f10,f11
+f1,1,tab,caps,shift,k45,win,left,up,pgdn,pgup,home,f12
+

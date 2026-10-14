@@ -1,0 +1,16 @@
+[package]
+name = "aula"
+version = "0.1.0"
+edition = "2021"
+description = "Linux control software for AULA keyboards (BYCOMBO4 / OemDrv protocol family)"
+license = "MIT"
+
+[dependencies]
+anyhow = "1"
+libc = "0.2"
+eframe = { version = "0.36", default-features = false, features = ["glow", "default_fonts", "wayland", "x11"] }
+egui = "0.36"
+image = { version = "0.25", default-features = false, features = ["png"] }
+
+[profile.release]
+opt-level = 2

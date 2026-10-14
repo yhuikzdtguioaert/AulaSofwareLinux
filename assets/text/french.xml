@@ -1,0 +1,297 @@
+<?xml version="1.0" encoding="utf-16"?>
+<root>
+	<config>
+		<tc_config>Config</tc_config>
+		<tc_exit>Quitter</tc_exit>
+		<tc_web></tc_web>
+		<tc_ok>OK</tc_ok>
+		<tc_restore>Réinitialiser</tc_restore>
+		<tc_cancel>Annuler</tc_cancel>
+		<tc_apply>Sauvegarder</tc_apply>
+		<tc_tap_tips>Appuyez sur les touches Fn + W pour passer le clavier en mode Windows et utiliser le pilote.</tc_tap_tips>
+
+		<tc_update1>Nouveau firmware détecté. Voulez-vous la mettre à jour ? (Redémarrez le clavier après la mise à jour)</tc_update1>
+		<tc_update2>Une nouvelle version du pilote est détectée. Voulez-vous la mettre à jour maintenant ?</tc_update2>
+		<tc_update3>Le logiciel est déjà la version la plus récente.</tc_update3>
+		<tc_update4>Téléchargement en cours</tc_update4>
+		<tc_update5>Erreur de mise à jour</tc_update5>
+		<tc_update6>Mise à jour du firmware</tc_update6>
+		<tc_update7>Mise à jour du pilote</tc_update7>
+		<tc_update8>Veuillez d'abord passer l'appareil en connexion USB.</tc_update8>
+
+		<tc_macro_msg1>Nouveau dossier</tc_macro_msg1>
+		<tc_macro_msg2>Nouvelle macro</tc_macro_msg2>
+		<tc_macro_msg3>Veuillez saisir un nom</tc_macro_msg3>
+		<tc_macro_msg4>Enregistrer</tc_macro_msg4>
+		<tc_macro_msg5>Arrêter</tc_macro_msg5>
+		<tc_macro_msg6>Supprimer</tc_macro_msg6>
+		<tc_macro_msg7>Touche</tc_macro_msg7>
+		<tc_macro_msg8>Modifier</tc_macro_msg8>
+		<tc_macro_msg9>Panneau d'édition de macro</tc_macro_msg9>
+		<tc_macro_msg10>Démarrer</tc_macro_msg10>
+		<tc_macro_msg11>Temps de maintien</tc_macro_msg11>
+		<tc_macro_msg12>Fin</tc_macro_msg12>
+		<tc_macro_msg13>Échelle de la vue</tc_macro_msg13>
+		<tc_macro_msg14>Aperçu</tc_macro_msg14>
+		<tc_macro_msg15>Il n'y a actuellement aucune macro. Cliquez pour en créer</tc_macro_msg15>
+		<tc_macro_msg16>Insérer</tc_macro_msg16>
+		<tc_macro_msg17>Nombre de cycles</tc_macro_msg17>
+		<tc_macro_msg18>Cycler jusqu'à la relâche de la touche</tc_macro_msg18>
+		<tc_macro_msg19>Cycler jusqu'à l'appui sur une touche</tc_macro_msg19>
+		<tc_macro_msg20>Déplacement X</tc_macro_msg20>
+		<tc_macro_msg21>Déplacement Y</tc_macro_msg21>
+		<tc_macro_msg22>Délai</tc_macro_msg22>
+		<tc_macro_msg23>Double-cliquez pour modifier, Entrée pour valider</tc_macro_msg23>
+		<tc_macro_msg24>Une heure de début identique est détectée</tc_macro_msg24>
+
+		<tc_PL>Lecture/Pause</tc_PL>
+		<tc_stop>Arrêter</tc_stop>
+		<tc_pre_media>Précédent</tc_pre_media>
+		<tc_next_media>Suivant</tc_next_media>
+		<tc_vol_up>Volume +</tc_vol_up>
+		<tc_vol_dw>Volume -</tc_vol_dw>
+		<tc_mute>Muet</tc_mute>
+		<tc_briup>Écran +</tc_briup>
+		<tc_bridn>Écran -</tc_bridn>
+
+		<tc_kbmedia_mail>E-mail</tc_kbmedia_mail>
+		<tc_kbmedia_main>Page d'accueil</tc_kbmedia_main>
+		<tc_kbmedia_explore>Mon ordinateur</tc_kbmedia_explore>
+		<tc_kbmedia_cal>Calculatrice</tc_kbmedia_cal>
+		<tc_kbmedia_favor>Favoris</tc_kbmedia_favor>
+		<tc_kbmedia_msel>Lecteur Multimédia</tc_kbmedia_msel>
+
+		<tc_msfun>les touches de la souris</tc_msfun>	
+		<tc_click>Bouton Gauche</tc_click>
+		<tc_menu>Bouton Droit</tc_menu>
+		<tc_middle>Bouton du Milieu</tc_middle>
+		<tc_forward>Avancer</tc_forward>
+		<tc_back>Reculer</tc_back>
+		<tc_scrollup>Défilement Haut</tc_scrollup>
+		<tc_scrolldown>Défilement Bas</tc_scrolldown>
+		<tc_dbclick>Double-clic</tc_dbclick>
+		<tc_rdbclick>double-clic droit</tc_rdbclick>
+		<tc_mac_def>Macro</tc_mac_def>
+		<tc_key_off>Désactiver</tc_key_off>
+
+		<tc_msg1>Global</tc_msg1>
+		<tc_msg2>Modèle de l'appareil</tc_msg2>
+		<tc_msg3>Version du firmware</tc_msg3>
+		<tc_msg4>Version du logiciel</tc_msg4>
+		<tc_msg5>Batterie</tc_msg5>
+		<tc_msg6>Lorsque vous cliquez sur le bouton X</tc_msg6>
+		<tc_msg7>Quitter</tc_msg7>
+		<tc_msg8>Réduire dans la zone de notification</tc_msg8>
+		<tc_msg9>Appareil</tc_msg9>
+		<tc_msg10>Langue</tc_msg10>
+		<tc_msg11>Exécution automatique</tc_msg11>
+		<tc_msg12>ON</tc_msg12>
+		<tc_msg13>OFF</tc_msg13>
+		<tc_msg14>Couleur personnalisée</tc_msg14>
+		<tc_msg15>Ajouter</tc_msg15>
+		<tc_msg16>Êtes-vous sûr de vouloir supprimer ?</tc_msg16>
+		<tc_msg17>Êtes-vous sûr de vouloir restaurer ?</tc_msg17>
+		<tc_msg18>Assignation de touche</tc_msg18>
+		<tc_msg19>Le nombre maximal de macros est atteint</tc_msg19>
+		<tc_msg20>Vérification automatique des mises à jour</tc_msg20>
+		<tc_msg21>Restaurer les paramètres d'usine de l'appareil</tc_msg21>
+		<tc_msg22>Luminosité</tc_msg22>
+		<tc_msg23>Vitesse</tc_msg23>
+		<tc_msg24>Couleur</tc_msg24>
+		<tc_msg25>Coloré</tc_msg25>
+		<tc_msg26>Profil</tc_msg26>
+		<tc_msg27>Profil</tc_msg27>
+		<tc_msg28>Commandes</tc_msg28>
+		<tc_msg29>Clavier</tc_msg29>
+		<tc_msg30>Souris</tc_msg30>
+		<tc_msg31>Multimédia</tc_msg31>
+		<tc_msg32>Combinaison de touches</tc_msg32>
+		<tc_msg33>Veuillez saisir une touche unique ou une combinaison de touches</tc_msg33>
+		<tc_msg34>En mode sans fil, le clavier se met en veille après une période d'inactivité</tc_msg34>
+		<tc_msg35>Veuillez connecter votre appareil.</tc_msg35>
+		<tc_msg36>Seconde</tc_msg36>
+		<tc_msg37>Min</tc_msg37>
+		<tc_msg38>ms</tc_msg38>
+		<tc_msg39>Renommer</tc_msg39>
+		<tc_msg40>Importer</tc_msg40>
+		<tc_msg41>Exporter</tc_msg41>
+		<tc_msg42>Copier</tc_msg42>
+		<tc_msg43>Veuillez saisir une touche</tc_msg43>
+		<tc_msg44>L'appareil est en veille ou déconnecté</tc_msg44>
+		<tc_msg45>Infos de l'appareil</tc_msg45>
+		<tc_msg46>Langue</tc_msg46>
+		<tc_msg47>Démarrage</tc_msg47>
+		<tc_msg48>Quitter</tc_msg48>
+		<tc_msg49>Veille</tc_msg49>
+		<tc_msg50>Réinitialiser</tc_msg50>
+		<tc_msg51>Mettre à niveau</tc_msg51>
+		<tc_msg52>Veuillez patienter.....</tc_msg52>
+		<tc_msg53>La configuration a échoué. L'appareil est occupé ou subit une interférence sans fil. Veuillez réessayer ultérieurement.</tc_msg53>
+		<tc_msg54>Anti-rebond</tc_msg54>
+		<tc_msg55>le niveau</tc_msg55>
+
+		<tc_cmd1>Fermer la fenêtre</tc_cmd1>
+		<tc_cmd2>Verrouiller l'ordinateur</tc_cmd2>
+		<tc_cmd3>Exécuter</tc_cmd3>
+		<tc_cmd4>Afficher le bureau</tc_cmd4>
+		<tc_cmd5>Zoom avant</tc_cmd5>
+		<tc_cmd6>Zoom arrière</tc_cmd6>
+		<tc_cmd7>Gestionnaire des tâches</tc_cmd7>
+		<tc_cmd8>Annuler</tc_cmd8>
+		<tc_cmd9>Sauvegarder</tc_cmd9>
+		<tc_cmd10></tc_cmd10>
+		<tc_cmd11>Verrouiller Win</tc_cmd11>
+		<tc_cmd12>Verrouiller le clavier</tc_cmd12>
+		<tc_cmd13>Réinitialiser</tc_cmd13>
+
+		<tc_ms1>Niveaux de DPI</tc_ms1>
+		<tc_ms2>Verrouillage de DPI</tc_ms2>
+		<tc_ms3>Triple-clic</tc_ms3>
+		<tc_ms4>Éclairage ON/OFF</tc_ms4>
+		<tc_ms5>Changer l'effet</tc_ms5>
+		<tc_ms6>Changer le Taux d'Interrogation</tc_ms6>
+		<tc_ms7>Changer le Mode</tc_ms7>
+		<tc_ms8>Boucle DPI</tc_ms8>
+		<tc_ms9>Touche de tir</tc_ms9>
+		<tc_ms10>Boucle ( 0-255 )</tc_ms10>
+		<tc_ms11>Intervalles ( 5-255 )</tc_ms11>
+		<tc_ms12>Note : Plus la valeur des intervalles est petite, plus la vitesse de frappe est rapide.</tc_ms12>
+		<tc_ms13>Taux d'Interrogation</tc_ms13>
+		<tc_ms14>XY Indépendant</tc_ms14>
+		<tc_ms15>Au moins un bouton doit être configuré comme "clic"</tc_ms15>
+		<tc_ms16>Éclairage</tc_ms16>
+		<tc_ms17>Direction</tc_ms17>
+		<tc_ms18>Sensibilité de la Souris</tc_ms18>
+		<tc_ms19>Améliorer la précision du pointeur</tc_ms19>
+		<tc_ms20>Vitesse de Défilement</tc_ms20>
+		<tc_ms21>Défiler d'une page</tc_ms21>
+		<tc_ms22>Vitesse du double-clic</tc_ms22>
+		<tc_ms23>Anti-rebond</tc_ms23>
+		<tc_ms24></tc_ms24>
+
+		<tc_ms_led1>Flux Coloré</tc_ms_led1>
+		<tc_ms_led2>Fixe</tc_ms_led2>
+		<tc_ms_led3>Respiration</tc_ms_led3>
+		<tc_ms_led4>Traînée Colorée</tc_ms_led4>
+		<tc_ms_led5>Néon</tc_ms_led5>
+		<tc_ms_led6>Fixe Coloré</tc_ms_led6>
+		<tc_ms_led7>Scintillement</tc_ms_led7>
+		<tc_ms_led8>Étoiles scintillantes</tc_ms_led8>
+		<tc_ms_led9>Vague</tc_ms_led9>
+		<tc_ms_led10>LED OFF</tc_ms_led10>
+
+		<tc_kb1>Effet lumineux</tc_kb1>
+		<tc_kb2>Veuillez d'abord sélectionner une touche</tc_kb2>
+		<tc_kb3>Groupe de couleurs</tc_kb3>
+		<tc_kb4>Maintenez le bouton gauche enfoncé et déplacez la souris pour sélectionner plusieurs touches</tc_kb4>
+		<tc_kb5>Par défaut</tc_kb5>
+		<tc_kb6>FN1</tc_kb6>
+		<tc_kb7>FN2</tc_kb7>
+		<tc_kb8>Taper</tc_kb8>
+		<tc_kb9>Par défaut</tc_kb9>
+		<tc_kb10>Actuel</tc_kb10>
+		<tc_kb11>Aucune fonction de touche sélectionnée</tc_kb11>
+		<tc_kb12>Sensibilité</tc_kb12>
+		<tc_kb13>Réinitialiser la touche</tc_kb13>
+		<tc_kb14>自动识别系统</tc_kb14>
+
+		<tc_kb_led1>Fixé_activé </tc_kb_led1>
+		<tc_kb_led2>Respiration </tc_kb_led2>
+		<tc_kb_led3>Arc-en-ciel </tc_kb_led3>
+		<tc_kb_led4>Éclair_fugitif </tc_kb_led4>
+		<tc_kb_led5>Gouttes de pluie</tc_kb_led5>
+		<tc_kb_led6>Roue arc-en-ciel</tc_kb_led6>
+		<tc_kb_led7>Ondulations_brillantes</tc_kb_led7>
+		<tc_kb_led8>Étoiles_scintillantes</tc_kb_led8>
+		<tc_kb_led9>Ombre_disparaissante</tc_kb_led9>
+		<tc_kb_led10>Serpent_rétro</tc_kb_led10>
+		<tc_kb_led11>Flux_néon</tc_kb_led11>
+		<tc_kb_led12>Réaction</tc_kb_led12>
+		<tc_kb_led13>Onde sinusoïdale</tc_kb_led13>
+		<tc_kb_led14>Balayage Horizontal</tc_kb_led14>
+		<tc_kb_led15>Moulinet rotatif</tc_kb_led15>
+		<tc_kb_led16>Cascade colorée</tc_kb_led16>
+		<tc_kb_led17>Floraison</tc_kb_led17>
+		<tc_kb_led18>Tempête rotative</tc_kb_led18>
+		<tc_kb_led19>Personnalisé</tc_kb_led19>
+		<tc_kb_led20>OFF</tc_kb_led20>
+
+		<tc_game1>FN+1</tc_game1>
+		<tc_game2>FN+2</tc_game2>
+		<tc_game3>FN+3</tc_game3>
+		<tc_game4>FN+4</tc_game4>
+		<tc_game5>FN+5</tc_game5>
+
+		<tc_music1>Musique</tc_music1>
+		<tc_music2>Facteur de gain</tc_music2>
+		<tc_music3>L'éclairage du clavier change avec le rythme du son système</tc_music3>
+		<tc_music4>Couleur</tc_music4>
+		<tc_music5>Multicolore</tc_music5>
+		<tc_music6>ON</tc_music6>
+		<tc_music7>OFF</tc_music7>
+		<tc_music8>Effet</tc_music8>
+		<tc_music9>Fluidité</tc_music9>
+		<tc_music10>Gain automatique</tc_music10>
+
+		<tc_music_mode1>Danse audio - douce</tc_music_mode1>
+		<tc_music_mode2>Éblouissant - rock</tc_music_mode2>
+		<tc_music_mode3>Nuées et Neige Volante - routine</tc_music_mode3>
+		<tc_music_mode4>Champ de lumière - voix</tc_music_mode4>
+		<tc_music_mode5>Ruisseau murmurant - régulier</tc_music_mode5>
+		<tc_music_mode6>Floraison - passion</tc_music_mode6>
+		<tc_music_mode7>Perle tombant sur un plateau de jade - rock</tc_music_mode7>
+		<tc_music_mode8>Nuages suivant la lune - passion</tc_music_mode8>
+		<tc_music_mode9>Montagnes et Eaux Courantes - régulier</tc_music_mode9>
+		<tc_music_mode10>Pluie Soyeuse - régulier</tc_music_mode10>
+		<tc_music_mode11>Paoma</tc_music_mode11>
+
+		<tc_yun1>共享中心</tc_yun1>
+		<tc_yun2>文件名称</tc_yun2>
+		<tc_yun3>文件描述</tc_yun3>
+		<tc_yun4>适用软件</tc_yun4>
+		<tc_yun5>上传用户</tc_yun5>
+		<tc_yun6>上传时间</tc_yun6>
+		<tc_yun7>下载</tc_yun7>
+		<tc_yun8>共享该宏</tc_yun8>
+		<tc_yun9>描述该宏的作用或使用注意事项</tc_yun9>
+		<tc_yun10>该宏可用在哪些游戏或软件上</tc_yun10>
+		<tc_yun11>下载成功，是否现在查看？</tc_yun11>
+		<tc_yun12>请登录</tc_yun12>
+		<tc_yun13>登录</tc_yun13>
+		<tc_yun14>退出登录</tc_yun14>
+		<tc_yun15>注册</tc_yun15>
+		<tc_yun16>用户名</tc_yun16>
+		<tc_yun17>密码</tc_yun17>
+		<tc_yun18>确认密码</tc_yun18>
+		<tc_yun19>邮箱</tc_yun19>
+		<tc_yun20>性别</tc_yun20>
+		<tc_yun21>男</tc_yun21>
+		<tc_yun22>女</tc_yun22>
+		<tc_yun23>该名称已被注册</tc_yun23>
+		<tc_yun24>该邮箱已被注册</tc_yun24>
+		<tc_yun25>请输入正确的邮箱</tc_yun25>
+		<tc_yun26>两次输入的密码不一致</tc_yun26>
+		<tc_yun27>密码长度请保持在6~20个字符</tc_yun27>
+		<tc_yun28>服务器未响应或网络连接出错</tc_yun28>
+		<tc_yun29>用户名或密码错误</tc_yun29>
+		<tc_yun30>注册成功</tc_yun30>
+		<tc_yun31>还没有账号，现在注册</tc_yun31>
+		<tc_yun32>下次自动登录</tc_yun32>
+		<tc_yun33>上传该配置到云空间</tc_yun33>
+		<tc_yun34>提交成功</tc_yun34>
+		<tc_yun35>我的云端配置文件</tc_yun35>
+		<tc_yun36>适用设备</tc_yun36>
+		<tc_yun37>个人中心</tc_yun37>
+		<tc_yun38>已有一个同名配置，是否覆盖？</tc_yun38>
+		<tc_yun39>建议反馈</tc_yun39>
+		<tc_yun40>您的联系方式</tc_yun40>
+		<tc_yun41>提交</tc_yun41>
+		<tc_yun42>修改密码</tc_yun42>
+		<tc_yun43>请输入旧密码</tc_yun43>
+		<tc_yun44>请输入新密码</tc_yun44>
+		<tc_yun45>请再次输入新密码</tc_yun45>
+		<tc_yun46>密码修改成功</tc_yun46>
+		<tc_yun47>该配置不适用于当前设备</tc_yun47>
+		<tc_yun48></tc_yun48>
+	</config>
+</root>
