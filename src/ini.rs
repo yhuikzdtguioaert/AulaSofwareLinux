@@ -1,10 +1,3 @@
-//! Minimal INI reader for the vendor `KB.ini` / `Cfg.ini` files.
-//!
-//! The originals ship as UTF-16LE (with and without BOM) and occasionally as
-//! GBK, so decoding is sniffed rather than assumed. Keys are case-insensitive,
-//! `;` starts a comment, and duplicate keys keep the first occurrence — that is
-//! what OemDrv.exe does.
-
 use std::collections::BTreeMap;
 use std::path::Path;
 
@@ -50,10 +43,7 @@ impl Ini {
             .map(String::as_str)
     }
 
-    pub fn section(&self, section: &str) -> Option<&BTreeMap<String, String>> {
-        self.sections.get(&section.to_ascii_uppercase())
-    }
-
+    #[cfg(test)]
     pub fn has_section(&self, section: &str) -> bool {
         self.sections.contains_key(&section.to_ascii_uppercase())
     }
@@ -125,7 +115,9 @@ pub fn decode(raw: &[u8]) -> String {
 
 fn utf16le(raw: &[u8]) -> String {
     let units: Vec<u16> = raw
-        .chunks_exact(2)
+        .as_chunks::<2>()
+        .0
+        .iter()
         .map(|c| u16::from_le_bytes([c[0], c[1]]))
         .collect();
     String::from_utf16_lossy(&units)

@@ -1,10 +1,3 @@
-//! The keyboard picture with its clickable keys.
-//!
-//! `keyimg.png` and the pixel rectangle of every key both come straight from
-//! the vendor profile, so the layout is the original one rather than a
-//! reconstruction. Key rectangles are given in image pixels and scaled with the
-//! picture.
-
 use std::collections::BTreeSet;
 
 use egui::{Color32, Pos2, Rect, Sense, Stroke, Vec2};
@@ -18,13 +11,8 @@ pub struct KeyboardView {
 
 /// What a click did, so the caller can react without re-hit-testing.
 pub struct KeyboardResponse {
-    /// Key index under the pointer, if any.
-    pub hovered: Option<u32>,
     /// Key index that was clicked this frame.
     pub clicked: Option<u32>,
-    /// True while the user is dragging a rubber-band selection.
-    pub dragging: bool,
-    pub rect: Rect,
 }
 
 impl KeyboardView {
@@ -97,7 +85,6 @@ impl KeyboardView {
         let hover_col = super::theme::from_slice(profile.color_key_hover);
         let down_col = super::theme::from_slice(profile.color_key_down);
 
-        let mut hovered = None;
         let mut clicked = None;
 
         for key in profile.keys.iter().filter(|k| k.is_drawn()) {
@@ -112,11 +99,8 @@ impl KeyboardView {
             }
 
             let is_hovered = pointer.is_some_and(|p| kr.contains(p));
-            if is_hovered {
-                hovered = Some(key.index);
-                if response.clicked() {
-                    clicked = Some(key.index);
-                }
+            if is_hovered && response.clicked() {
+                clicked = Some(key.index);
             }
 
             let stroke = if selected.contains(&key.index) {
@@ -131,30 +115,7 @@ impl KeyboardView {
             }
         }
 
-        KeyboardResponse {
-            hovered,
-            clicked,
-            dragging: response.dragged(),
-            rect,
-        }
-    }
-
-    /// Keys whose rectangle intersects `band`, in image space.
-    pub fn keys_in_band(&self, profile: &DeviceProfile, image_rect: Rect, band: Rect) -> Vec<u32> {
-        let scale = image_rect.width() / self.image_size.x;
-        profile
-            .keys
-            .iter()
-            .filter(|k| k.is_drawn())
-            .filter(|k| {
-                let kr = Rect::from_min_max(
-                    image_rect.min + Vec2::new(k.rect[0] as f32 * scale, k.rect[1] as f32 * scale),
-                    image_rect.min + Vec2::new(k.rect[2] as f32 * scale, k.rect[3] as f32 * scale),
-                );
-                kr.intersects(band)
-            })
-            .map(|k| k.index)
-            .collect()
+        KeyboardResponse { clicked }
     }
 }
 

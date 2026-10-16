@@ -1,12 +1,3 @@
-//! Finding an attached AULA keyboard and deciding which profile describes it.
-//!
-//! Every keyboard in this family enumerates as USB 258a:010c (or as its 2.4 GHz
-//! dongle), so the USB ids alone cannot tell an F75 from an H108. The driver
-//! asks the device for its 6-byte password and matches that against `Psd=` in
-//! the profiles — this module does the same.
-
-use std::io;
-
 use crate::hid::{self, HidDevice, HidNode};
 use crate::profile::DeviceProfile;
 use crate::proto::{self, Link, REPORT_LEN};
@@ -64,7 +55,11 @@ pub fn find_candidates(profiles: &[DeviceProfile]) -> Vec<Candidate> {
 
     hid::enumerate()
         .into_iter()
-        .filter(|n| ids.is_empty() || ids.contains(&(n.vid, n.pid)))
+        .filter(|n| {
+            ids.is_empty()
+                || ids.contains(&(n.vid, n.pid))
+                || n.name.to_ascii_lowercase().contains("aula")
+        })
         .filter_map(|n| candidate_for(&n))
         .collect()
 }
@@ -74,9 +69,6 @@ pub struct Keyboard {
     pub link: Link,
     pub profile: DeviceProfile,
     pub password: [u8; 6],
-    /// True when the password came back from the hardware rather than being
-    /// assumed from a single-candidate profile list.
-    pub identified: bool,
 }
 
 /// Open `candidate` and work out which profile it is.
@@ -105,31 +97,6 @@ pub fn open(candidate: &Candidate, profiles: &[DeviceProfile]) -> anyhow::Result
         link,
         profile,
         password,
-        identified: true,
-    })
-}
-
-/// Open `candidate` and force a specific profile, skipping identification.
-///
-/// Useful when the password read is blocked (no permission on the node) but the
-/// model is already known.
-pub fn open_as(candidate: &Candidate, profile: &DeviceProfile) -> anyhow::Result<Keyboard> {
-    let dev = HidDevice::open(&candidate.node)
-        .map_err(|e| anyhow::anyhow!("{}", hid::permission_hint(&candidate.node.dev_path, &e)))?;
-    let report_id = if candidate.report_id != 0 {
-        candidate.report_id
-    } else {
-        proto::report_id_for_firmware(profile.fw)
-    };
-    Ok(Keyboard {
-        link: if candidate.wireless {
-            Link::wireless(dev)
-        } else {
-            Link::new(dev, report_id)
-        },
-        profile: profile.clone(),
-        password: profile.password,
-        identified: false,
     })
 }
 
@@ -151,11 +118,6 @@ pub fn autodetect(profiles: &[DeviceProfile]) -> (Option<Keyboard>, Vec<String>)
         }
     }
     (None, problems)
-}
-
-/// Wraps `io::Error` with the node path for messages shown to the user.
-pub fn describe_io(node: &HidNode, e: &io::Error) -> String {
-    hid::permission_hint(&node.dev_path, e)
 }
 
 #[cfg(test)]

@@ -1,21 +1,15 @@
-//! The application window.
-//!
-//! Chrome, palette, artwork and strings are the vendor's own, so the layout
-//! matches the Windows original: a 1200x720 undecorated window, `main_nr.png`
-//! as the background, the 50x50 navigation icons in the title bar and the
-//! keyboard drawn from `keyimg.png`.
-
 pub mod keyboard;
 pub mod theme;
 pub mod widgets;
 
 use std::collections::BTreeSet;
 use std::path::PathBuf;
+use std::sync::Arc;
 
 use egui::{Color32, Rect, Sense, Vec2};
 
 use crate::assets::{Skins, Strings};
-use crate::config_page::{ConfigPage, Layout, COLORS, COLOR_RANDOM, PAGE_LEN};
+use crate::config_page::{ConfigPage, Layout, COLORS, COLOR_RANDOM};
 use crate::profile::DeviceProfile;
 use crate::worker::{Event, Request, Worker};
 use keyboard::KeyboardView;
@@ -25,11 +19,10 @@ use theme::{Theme, CONTENT_X, DESIGN_H, DESIGN_W, NAVI_SIZE, NAVI_STEP, TITLE_H}
 pub enum Tab {
     Light,
     Settings,
-    Diagnostics,
 }
 
 impl Tab {
-    pub const ALL: [Tab; 3] = [Tab::Light, Tab::Settings, Tab::Diagnostics];
+    pub const ALL: [Tab; 2] = [Tab::Light, Tab::Settings];
 
     /// Which vendor navigation icon (`navi<N>_nr.png`) stands for this page.
     /// The numbering follows the original artwork, not the tab order, so the
@@ -38,7 +31,6 @@ impl Tab {
         match self {
             Tab::Light => 3,
             Tab::Settings => 1,
-            Tab::Diagnostics => 4,
         }
     }
 
@@ -46,18 +38,16 @@ impl Tab {
         match self {
             Tab::Light => s.get("tc_kb1", "Light effect").to_string(),
             Tab::Settings => s.get("tc_msg1", "Global").to_string(),
-            Tab::Diagnostics => "Protocol".to_string(),
         }
     }
 }
 
 pub struct App {
-    profiles: Vec<DeviceProfile>,
+    profiles: Vec<Arc<DeviceProfile>>,
     worker: Worker,
     strings: Strings,
     skins: Skins,
     theme: Theme,
-    assets_root: PathBuf,
 
     tab: Tab,
     connected: Option<Connected>,
@@ -66,23 +56,16 @@ pub struct App {
     rgb: Vec<u8>,
     power: Option<Vec<u8>>,
     selection: BTreeSet<u32>,
-    last_key: Option<u32>,
     paint_color: [u8; 3],
 
     status: String,
     error: Option<String>,
-    log: Vec<String>,
-    /// Offset/value pair for the byte poker in the diagnostics tab.
-    poke: (usize, u8),
-    raw: (u8, u8, usize),
+    knob_action: Option<[u8; 4]>,
+    wireless: bool,
 }
 
 struct Connected {
-    profile: DeviceProfile,
-    display_name: String,
-    password: [u8; 6],
-    report_id: u8,
-    node: String,
+    profile: Arc<DeviceProfile>,
 }
 
 impl App {
@@ -99,12 +82,11 @@ impl App {
         worker.send(Request::Connect);
 
         App {
-            profiles,
+            profiles: profiles.into_iter().map(Arc::new).collect(),
             worker,
             strings,
             skins: Skins::new(&assets_root),
             theme,
-            assets_root,
             tab: Tab::Light,
             connected: None,
             keyboard: None,
@@ -112,13 +94,11 @@ impl App {
             rgb: Vec::new(),
             power: None,
             selection: BTreeSet::new(),
-            last_key: None,
             paint_color: [255, 0, 0],
-            status: "Looking for a keyboard…".into(),
+            status: String::new(),
             error: None,
-            log: Vec::new(),
-            poke: (0x0a, 1),
-            raw: (crate::proto::cmd::GET_LED, 0, PAGE_LEN),
+            knob_action: None,
+            wireless: false,
         }
     }
 
@@ -127,58 +107,58 @@ impl App {
             match ev {
                 Event::Connected {
                     profile_id,
-                    display_name,
-                    password,
-                    report_id,
-                    node,
+                    wireless,
                 } => {
-                    let profile = self.profiles.iter().find(|p| p.id == profile_id).cloned();
-                    if let Some(profile) = profile {
+                    if let Some(profile) =
+                        self.profiles.iter().find(|p| p.id == profile_id).cloned()
+                    {
                         self.page = ConfigPage::blank(Layout::load_override(&profile.dir));
                         self.keyboard = Some(KeyboardView::load(ctx, &profile));
-                        self.rgb = vec![0; profile.led_count() * 3];
-                        // Kept short: the side panel already carries the full name.
-                        self.status = format!("{} · {}", profile.short_name, node);
-                        self.connected = Some(Connected {
-                            profile,
-                            display_name,
-                            password,
-                            report_id,
-                            node,
-                        });
+                        self.rgb.clear();
+                        self.power = None;
+                        self.knob_action = None;
+                        self.selection.clear();
+                        self.connected = Some(Connected { profile });
+                        self.wireless = wireless;
+                        self.status.clear();
                         self.error = None;
                     }
                 }
                 Event::Disconnected(msg) => {
                     self.connected = None;
                     self.keyboard = None;
+                    self.rgb.clear();
+                    self.power = None;
+                    self.knob_action = None;
+                    self.error = None;
                     self.status = msg;
                 }
                 Event::Config(bytes) => {
                     let layout = self.page.layout;
                     self.page = ConfigPage::new(bytes, layout);
                 }
+                Event::SavedConfig { sent, bytes } => {
+                    if self.page.bytes == sent {
+                        self.page = ConfigPage::new(bytes, self.page.layout);
+                    }
+                }
                 Event::RgbTable(bytes) => self.rgb = bytes,
                 Event::Power(p) => self.power = Some(p),
-                Event::RawData { command, data } => {
-                    self.log.push(format!("0x{command:02x}: {}", hex(&data)));
+                Event::Knob(action) => self.knob_action = Some(action),
+                Event::Notice(message) => {
+                    self.status = message;
+                    self.error = None;
                 }
-                Event::Notice(m) => self.status = m,
-                Event::Error(m) => {
-                    self.error = Some(m.clone());
-                    self.log.push(format!("error: {m}"));
+                Event::Error(message) => {
+                    self.error = Some(message);
+                    self.page.dirty = true;
                 }
-                Event::Log(m) => self.log.push(m),
             }
-        }
-        if self.log.len() > 400 {
-            let cut = self.log.len() - 400;
-            self.log.drain(..cut);
         }
     }
 
-    fn profile(&self) -> Option<&DeviceProfile> {
-        self.connected.as_ref().map(|c| &c.profile)
+    fn profile(&self) -> Option<Arc<DeviceProfile>> {
+        self.connected.as_ref().map(|c| Arc::clone(&c.profile))
     }
 
     /// Send the settings page if anything changed.
@@ -191,9 +171,7 @@ impl App {
             return;
         }
         if !self.page.looks_valid() {
-            self.error = Some(
-                "refusing to write: the settings page was never read back from the keyboard".into(),
-            );
+            self.error = Some("Settings are not ready. Reconnect the keyboard.".into());
             return;
         }
         self.worker
@@ -266,11 +244,10 @@ impl eframe::App for App {
             .show(&ctx, |ui| {
                 ui.set_min_size(content.size());
                 ui.set_max_size(content.size());
-                match self.tab {
+                ui.add_enabled_ui(self.page.looks_valid(), |ui| match self.tab {
                     Tab::Light => self.tab_light(ui, content),
                     Tab::Settings => self.tab_settings(ui),
-                    Tab::Diagnostics => self.tab_diagnostics(ui),
-                }
+                });
             });
 
         self.status_bar(&ctx);
@@ -364,8 +341,7 @@ impl App {
         }
     }
 
-    /// The narrow column the original uses for the device and its state.
-    /// The narrow column the original uses for the device and its state.
+    /// Device summary beside the keyboard artwork.
     fn side_panel(&mut self, ui: &mut egui::Ui, full: Rect) {
         let x = full.min.x + theme::RAIL_X + 24.0;
         let width = CONTENT_X - theme::RAIL_X - 48.0;
@@ -394,36 +370,22 @@ impl App {
 
         let (title, lines) = match &self.connected {
             Some(c) => {
-                let mut lines = vec![
-                    format!(
-                        "{}: {}",
-                        self.strings.get("tc_msg2", "Device model"),
-                        c.profile.short_name
-                    ),
-                    format!(
-                        "{}: 0x{:02x}",
-                        self.strings.get("tc_msg3", "Firmware"),
-                        c.profile.fw
-                    ),
-                    format!("Report id: 0x{:02x}", c.report_id),
-                    format!("Node: {}", c.node),
-                    format!("Psd: {}", crate::device::fmt_password(&c.password)),
-                ];
-                if let Some(p) = &self.power {
-                    lines.push(format!(
-                        "{}: {}",
-                        self.strings.get("tc_msg5", "Battery"),
-                        p.first().copied().unwrap_or(0)
-                    ));
+                let mut lines = vec![if self.wireless {
+                    "2.4 GHz".into()
+                } else {
+                    "USB".into()
+                }];
+                if let Some(level) = self
+                    .power
+                    .as_ref()
+                    .and_then(|p| p.first())
+                    .filter(|level| **level <= 100)
+                {
+                    lines.push(format!("Battery: {level}%"));
                 }
-                (c.display_name.clone(), lines)
+                (format!("AULA {}", c.profile.short_name), lines)
             }
-            None => (
-                self.strings
-                    .get("tc_msg35", "Please connect your device.")
-                    .to_string(),
-                vec![format!("{} profiles loaded", self.profiles.len())],
-            ),
+            None => (String::new(), Vec::new()),
         };
 
         painter.text(
@@ -444,31 +406,11 @@ impl App {
             );
             y += 20.0;
         }
-
-        // Kept clear of the status line along the bottom edge.
-        let buttons = Rect::from_min_size(
-            egui::pos2(x, full.max.y - 130.0),
-            Vec2::new(widgets::BUTTON.x, 70.0),
-        );
-        widgets::at(
-            ui,
-            buttons,
-            egui::Layout::top_down(egui::Align::Min),
-            |ui| {
-                if widgets::button(ui, &mut self.skins, &self.theme, "Rescan", true).clicked() {
-                    self.worker.send(Request::Connect);
-                }
-                ui.add_space(6.0);
-                if widgets::button(ui, &mut self.skins, &self.theme, "Re-read", true).clicked() {
-                    self.worker.send(Request::Refresh);
-                }
-            },
-        );
     }
 
     fn status_bar(&mut self, ctx: &egui::Context) {
         let text = match &self.error {
-            Some(e) => format!("⚠ {e}"),
+            Some(e) => e.clone(),
             None => self.status.clone(),
         };
         let color = if self.error.is_some() {
@@ -485,7 +427,7 @@ impl App {
     }
 
     fn tab_light(&mut self, ui: &mut egui::Ui, content: Rect) {
-        let Some(profile) = self.profile().cloned() else {
+        let Some(profile) = self.profile() else {
             self.empty_page(ui, content);
             return;
         };
@@ -500,12 +442,16 @@ impl App {
             egui::pos2(content.max.x, y0 + 326.0),
         );
         if let Some(view) = &self.keyboard {
-            let rgb = self.rgb.clone();
+            let rgb = &self.rgb;
+            let custom = self.page.is_custom();
             let r = view.show(ui, kb_area, &profile, &self.selection, |k| {
-                App::key_color(&rgb, k)
+                if custom {
+                    App::key_color(rgb, k)
+                } else {
+                    None
+                }
             });
             if let Some(idx) = r.clicked {
-                self.last_key = Some(idx);
                 if ui.input(|i| i.modifiers.ctrl) {
                     if !self.selection.insert(idx) {
                         self.selection.remove(&idx);
@@ -535,6 +481,7 @@ impl App {
         );
         widgets::list_frame(ui, &self.theme, list);
         let mut pick_effect = None;
+        let mut pick_custom = false;
         widgets::at(
             ui,
             list.shrink(2.0),
@@ -544,6 +491,16 @@ impl App {
                 egui::ScrollArea::vertical()
                     .id_salt("effects")
                     .show(ui, |ui| {
+                        if !self.wireless {
+                            pick_custom = widgets::list_row(
+                                ui,
+                                &self.theme,
+                                widgets::LIST_W - 4.0,
+                                "Custom",
+                                self.page.is_custom(),
+                            )
+                            .clicked();
+                        }
                         for o in &profile.led_opts {
                             let label = self.effect_label(o);
                             let row = widgets::list_row(
@@ -551,7 +508,7 @@ impl App {
                                 &self.theme,
                                 widgets::LIST_W - 4.0,
                                 &label,
-                                o.ui_index == effect,
+                                o.ui_index == effect && !self.page.is_custom(),
                             );
                             if row.clicked() {
                                 pick_effect = Some(o.ui_index);
@@ -560,6 +517,9 @@ impl App {
                     });
             },
         );
+        if pick_custom && !self.rgb.is_empty() {
+            self.worker.send(Request::WriteRgbTable(self.rgb.clone()));
+        }
         if let Some(v) = pick_effect {
             self.page.set_effect(v);
             self.apply();
@@ -580,7 +540,7 @@ impl App {
         );
         let mut b = profile.brightness_ui(cur.brightness);
         let max = profile.brightness_levels().saturating_sub(1);
-        let enabled = opt.map(|o| o.has_light).unwrap_or(true);
+        let enabled = self.page.is_custom() || opt.is_some_and(|o| o.has_light);
         let (changed, resp) = widgets::at(
             ui,
             row(row_y),
@@ -610,7 +570,7 @@ impl App {
         );
         let mut sp = profile.speed_ui(cur.speed);
         let max = profile.speed_levels().saturating_sub(1);
-        let enabled = opt.map(|o| o.has_speed).unwrap_or(true);
+        let enabled = !self.page.is_custom() && opt.is_some_and(|o| o.has_speed);
         let (changed, resp) = widgets::at(
             ui,
             row(row_y),
@@ -640,7 +600,7 @@ impl App {
             egui::pos2(cx, row_y),
             self.strings.get("tc_msg24", "Color"),
         );
-        let color_enabled = opt.map(|o| o.has_color).unwrap_or(true);
+        let color_enabled = !self.page.is_custom() && opt.is_some_and(|o| o.has_color);
         let mut pick_color = None;
         widgets::at(
             ui,
@@ -663,7 +623,7 @@ impl App {
                     self.strings.get("tc_msg25", "Colourful"),
                     cur.color == COLOR_RANDOM,
                 );
-                if color_enabled && r.clicked() {
+                if !self.page.is_custom() && opt.is_some_and(|o| o.has_random) && r.clicked() {
                     pick_color = Some(COLOR_RANDOM);
                 }
             },
@@ -673,7 +633,10 @@ impl App {
             self.apply();
         }
 
-        // Per-key colours, written with their own command.
+        if self.wireless {
+            return;
+        }
+
         row_y += 42.0;
         widgets::caption(
             ui,
@@ -701,7 +664,7 @@ impl App {
             |ui| {
                 widgets::swatch(ui, &self.theme, self.paint_color, false, 26.0);
                 ui.add_space(6.0);
-                let can = !self.selection.is_empty() && !self.rgb.is_empty();
+                let can = !self.wireless && !self.selection.is_empty() && !self.rgb.is_empty();
                 if widgets::button(
                     ui,
                     &mut self.skins,
@@ -712,8 +675,8 @@ impl App {
                 .clicked()
                     && can
                 {
-                    for idx in self.selection.clone() {
-                        if let Some(k) = profile.keys.iter().find(|k| k.index == idx) {
+                    for idx in &self.selection {
+                        if let Some(k) = profile.keys.iter().find(|k| k.index == *idx) {
                             if k.led >= 0 {
                                 let at = k.led as usize * 3;
                                 if at + 3 <= self.rgb.len() {
@@ -725,7 +688,7 @@ impl App {
                     self.worker.send(Request::WriteRgbTable(self.rgb.clone()));
                 }
                 ui.add_space(6.0);
-                let any = !self.rgb.is_empty();
+                let any = !self.wireless && !self.rgb.is_empty();
                 if widgets::button(ui, &mut self.skins, &self.theme, "Fill all", any).clicked()
                     && any
                 {
@@ -735,14 +698,6 @@ impl App {
                     self.worker.send(Request::WriteRgbTable(self.rgb.clone()));
                 }
             },
-        );
-
-        widgets::caption(
-            ui,
-            &self.theme,
-            egui::pos2(x0, content.max.y - 6.0),
-            self.strings
-                .get("tc_kb4", "Hold ctrl to pick more than one key"),
         );
     }
 
@@ -768,51 +723,10 @@ impl App {
     }
 
     fn tab_settings(&mut self, ui: &mut egui::Ui) {
-        ui.heading(self.strings.get("tc_msg45", "Device Info"));
-        ui.add_space(8.0);
-
-        let Some(profile) = self.profile().cloned() else {
-            ui.label(self.strings.get("tc_msg35", "Please connect your device."));
-            ui.add_space(12.0);
-            ui.label(format!("Assets: {}", self.assets_root.display()));
-            ui.label(format!("{} device profiles loaded", self.profiles.len()));
-            ui.add_space(8.0);
-            ui.label(
-                "If the keyboard is plugged in but not listed, /dev/hidraw* is probably \
-                 root-only. Install udev/60-aula.rules and replug it.",
-            );
+        let Some(profile) = self.profile() else {
             return;
         };
-
-        egui::Grid::new("dev-info")
-            .num_columns(2)
-            .spacing([16.0, 6.0])
-            .show(ui, |ui| {
-                ui.label(self.strings.get("tc_msg2", "Device model"));
-                ui.label(&profile.name);
-                ui.end_row();
-                ui.label("USB");
-                ui.label(format!("{:04x}:{:04x}", profile.vid, profile.pid));
-                ui.end_row();
-                if let (Some(v), Some(p)) = (profile.wireless_vid, profile.wireless_pid) {
-                    ui.label("Wireless USB");
-                    ui.label(format!("{v:04x}:{p:04x}"));
-                    ui.end_row();
-                }
-                ui.label("Password");
-                ui.label(crate::device::fmt_password(&profile.password));
-                ui.end_row();
-                ui.label(self.strings.get("tc_msg3", "Firmware version"));
-                ui.label(format!("0x{:02x}", profile.fw));
-                ui.end_row();
-                ui.label("Keys / LEDs");
-                ui.label(format!("{} / {}", profile.keys.len(), profile.led_count()));
-                ui.end_row();
-                ui.label("Matrix length");
-                ui.label(profile.matrix_len.to_string());
-                ui.end_row();
-            });
-
+        ui.heading(self.strings.get("tc_msg1", "Global"));
         ui.add_space(16.0);
         ui.label(self.strings.get("tc_msg34", "Sleep after idle"));
         if !profile.sleep_ui.is_empty() {
@@ -823,7 +737,7 @@ impl App {
                 .position(|h| *h as u8 == current)
                 .and_then(|i| profile.sleep_ui.get(i))
                 .map(|s| format!("{s} s"))
-                .unwrap_or_else(|| format!("0x{current:02x}"));
+                .unwrap_or_else(|| if current == 0 { "Never" } else { "Custom" }.to_string());
             egui::ComboBox::from_id_salt("sleep")
                 .selected_text(label)
                 .show_ui(ui, |ui| {
@@ -839,17 +753,25 @@ impl App {
                 });
         }
 
-        ui.add_space(8.0);
-        ui.horizontal(|ui| {
-            ui.label(self.strings.get("tc_msg54", "Debounce"));
-            let mut d = self.page.debounce();
-            if ui
-                .add(egui::Slider::new(&mut d, 0..=30).suffix(" ms"))
-                .changed()
-            {
-                self.page.set_debounce(d);
-            }
-        });
+        if let Some(current) = self.knob_action {
+            ui.add_space(24.0);
+            ui.label("Knob press");
+            let actions = crate::worker::KNOB_ACTIONS;
+            let label = actions
+                .iter()
+                .find(|(_, action)| *action == current)
+                .map(|(name, _)| *name)
+                .unwrap_or("Custom");
+            egui::ComboBox::from_id_salt("knob-action")
+                .selected_text(label)
+                .show_ui(ui, |ui| {
+                    for (name, action) in actions {
+                        if ui.selectable_label(current == action, name).clicked() {
+                            self.worker.send(Request::SetKnob(action));
+                        }
+                    }
+                });
+        }
 
         ui.add_space(12.0);
         ui.horizontal(|ui| {
@@ -863,104 +785,11 @@ impl App {
                 self.apply();
             }
             if ui
-                .button(
-                    self.strings
-                        .get("tc_msg21", "Restore the device to the factory settings"),
-                )
+                .add_enabled(!self.wireless, egui::Button::new("Restore defaults"))
                 .clicked()
             {
                 self.worker.send(Request::FactoryReset);
             }
         });
-    }
-
-    fn tab_diagnostics(&mut self, ui: &mut egui::Ui) {
-        ui.heading("Protocol");
-        ui.label(
-            "Direct access to the vendor command channel. Reads are harmless; writes go \
-             straight to the keyboard.",
-        );
-        ui.add_space(10.0);
-
-        ui.horizontal(|ui| {
-            ui.label("cmd");
-            ui.add(egui::DragValue::new(&mut self.raw.0).hexadecimal(2, false, false));
-            ui.label("param");
-            ui.add(egui::DragValue::new(&mut self.raw.1).hexadecimal(2, false, false));
-            ui.label("len");
-            ui.add(egui::DragValue::new(&mut self.raw.2).range(1..=4096));
-            if ui.button("Read").clicked() {
-                self.worker.send(Request::RawRead {
-                    command: self.raw.0,
-                    parameter: self.raw.1,
-                    len: self.raw.2,
-                });
-            }
-        });
-
-        ui.add_space(6.0);
-        ui.horizontal(|ui| {
-            ui.label("Poke settings byte");
-            ui.add(egui::DragValue::new(&mut self.poke.0).range(0..=PAGE_LEN - 1));
-            ui.label("=");
-            ui.add(egui::DragValue::new(&mut self.poke.1));
-            if ui.button("Write & read back").clicked() {
-                self.worker.send(Request::PokeConfig {
-                    offset: self.poke.0,
-                    value: self.poke.1,
-                });
-            }
-        });
-
-        ui.add_space(12.0);
-        ui.label("Settings page");
-        egui::ScrollArea::vertical()
-            .id_salt("page")
-            .max_height(150.0)
-            .show(ui, |ui| {
-                ui.monospace(self.page.hex_dump());
-            });
-
-        ui.add_space(8.0);
-        ui.label("Log");
-        egui::ScrollArea::vertical()
-            .id_salt("log")
-            .max_height(160.0)
-            .stick_to_bottom(true)
-            .show(ui, |ui| {
-                for line in &self.log {
-                    ui.monospace(line);
-                }
-            });
-    }
-}
-
-fn hex(data: &[u8]) -> String {
-    data.iter()
-        .map(|b| format!("{b:02x}"))
-        .collect::<Vec<_>>()
-        .join(" ")
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn every_tab_keeps_its_own_vendor_icon() {
-        // The icons are the original artwork, so the numbers are fixed to the
-        // meaning of each page rather than to its position in the bar.
-        assert_eq!(Tab::Light.navi_index(), 3, "the bulb");
-        assert_eq!(Tab::Settings.navi_index(), 1, "the sliders");
-        assert_eq!(Tab::Diagnostics.navi_index(), 4, "the code window");
-        let mut icons: Vec<usize> = Tab::ALL.iter().map(|t| t.navi_index()).collect();
-        icons.sort_unstable();
-        icons.dedup();
-        assert_eq!(icons.len(), Tab::ALL.len(), "no two pages share an icon");
-    }
-
-    #[test]
-    fn hex_formats_bytes() {
-        assert_eq!(hex(&[0x00, 0x0a, 0xff]), "00 0a ff");
     }
 }

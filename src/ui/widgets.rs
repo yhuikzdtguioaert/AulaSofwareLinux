@@ -1,11 +1,3 @@
-//! Controls drawn from the vendor's own bitmaps.
-//!
-//! The original window skins every control, and the bitmaps carry their exact
-//! metrics: the slider track is `bar_nr.png` at 450x3 with a 12x12 handle,
-//! buttons are `button_nr.png` at 120x26, list rows use the `clrListBox*`
-//! colours from `Cfg.ini`. Matching those keeps the layout identical rather
-//! than merely similar.
-
 use egui::{Color32, Rect, Response, Sense, Ui, Vec2};
 
 use super::theme::Theme;

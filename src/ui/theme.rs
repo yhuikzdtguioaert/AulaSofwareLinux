@@ -1,6 +1,3 @@
-//! Colours and metrics taken from the vendor `Cfg.ini`, so the window matches
-//! the original pixel for pixel.
-
 use egui::Color32;
 
 use crate::ini::Ini;

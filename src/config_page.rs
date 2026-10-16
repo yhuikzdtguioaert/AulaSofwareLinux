@@ -1,26 +1,3 @@
-//! The lighting / settings page (command 0x04).
-//!
-//! 128 bytes, ending in a `5A A5` marker. The interesting part is a table of
-//! per-effect settings: the keyboard remembers brightness, speed and colour
-//! separately for every lighting effect, and a single byte near the front says
-//! which effect is live.
-//!
-//! Layout confirmed against an F75 (`aula dump`):
-//!
-//! ```text
-//! 0000  00 03 03 01 00 00 04 04 07 00 01 20 01 00 00 00
-//! 0010  00 00 02 00 02 01 00 ff 0a 00 00 00 01 00 03 01
-//! 0020  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-//! 0030  00 00 00 00 00 00 00 00 ff ff 09 40 09 47 09 47
-//! ...                                    ^^^^^ ^^^^^ per-effect settings
-//! 0070  07 44 07 44 04 09 04 04 04 04 04 04 04 04 5a a5
-//! ```
-//!
-//! Nothing here builds a page from nothing. The page is always read from the
-//! keyboard first, then the fields the user touched are patched and the page is
-//! written back — so bytes this code does not understand survive a round trip
-//! untouched.
-
 use crate::ini::Ini;
 use std::path::Path;
 
@@ -47,9 +24,6 @@ pub struct Layout {
     /// number — pressing Fn+Tab on an F75 showing the first effect moves the
     /// byte at 0x3b, which is slot 0.
     pub effect_table: usize,
-    /// Key debounce time. **Unconfirmed** — derived from the Windows driver's
-    /// own log line, not yet checked on hardware.
-    pub debounce: usize,
 }
 
 impl Default for Layout {
@@ -58,7 +32,6 @@ impl Default for Layout {
             effect: 0x0a,
             sleep: 0x18,
             effect_table: 0x3a,
-            debounce: 0x02,
         }
     }
 }
@@ -72,6 +45,7 @@ const ENTRY_SPEED_COLOR: usize = 1;
 
 impl Layout {
     /// How many effect slots fit between the table and the end marker.
+    #[cfg(test)]
     pub fn effect_slots(&self) -> usize {
         (PAGE_LEN - 2).saturating_sub(self.effect_table) / EFFECT_STRIDE
     }
@@ -98,7 +72,6 @@ impl Layout {
         set(&mut l.effect, "effect");
         set(&mut l.sleep, "sleep");
         set(&mut l.effect_table, "effect_table");
-        set(&mut l.debounce, "debounce");
         l
     }
 }
@@ -119,25 +92,6 @@ pub const COLORS: [(&str, [u8; 3]); 7] = [
 
 /// Value of the colour field that means "let the firmware pick".
 pub const COLOR_RANDOM: u8 = 7;
-
-/// Nearest firmware colour slot for an arbitrary RGB triple.
-pub fn nearest_color(rgb: [u8; 3]) -> u8 {
-    let mut best = 0u8;
-    let mut best_d = i32::MAX;
-    for (i, (_, c)) in COLORS.iter().enumerate() {
-        let d: i32 = (0..3)
-            .map(|k| {
-                let d = rgb[k] as i32 - c[k] as i32;
-                d * d
-            })
-            .sum();
-        if d < best_d {
-            best_d = d;
-            best = i as u8;
-        }
-    }
-    best
-}
 
 /// Brightness, speed and colour as stored for one effect.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
@@ -202,7 +156,12 @@ impl ConfigPage {
     }
 
     pub fn set_effect(&mut self, v: u8) {
+        self.set(0x09, 0);
         self.set(self.layout.effect, v);
+    }
+
+    pub fn is_custom(&self) -> bool {
+        self.get(0x09) == 1
     }
 
     pub fn sleep(&self) -> u8 {
@@ -211,14 +170,6 @@ impl ConfigPage {
 
     pub fn set_sleep(&mut self, v: u8) {
         self.set(self.layout.sleep, v);
-    }
-
-    pub fn debounce(&self) -> u8 {
-        self.get(self.layout.debounce)
-    }
-
-    pub fn set_debounce(&mut self, v: u8) {
-        self.set(self.layout.debounce, v);
     }
 
     /// Table slot for the effect listed at `ui_index` in the device profile.
@@ -249,10 +200,20 @@ impl ConfigPage {
 
     /// Settings for whichever effect is live.
     pub fn current(&self) -> EffectSettings {
+        if self.is_custom() {
+            return EffectSettings {
+                brightness: self.get(0x75),
+                ..Default::default()
+            };
+        }
         self.slot_settings(Self::slot_of(self.effect()))
     }
 
     pub fn set_brightness(&mut self, slot: u8, v: u8) {
+        if self.is_custom() {
+            self.set(0x75, v);
+            return;
+        }
         if let Some(at) = self.entry(slot) {
             self.set(at + ENTRY_BRIGHTNESS, v);
         }
@@ -272,13 +233,8 @@ impl ConfigPage {
         }
     }
 
-    /// Patch a single byte directly. Used by the probe UI when confirming an
-    /// offset against real hardware.
-    pub fn poke(&mut self, at: usize, v: u8) {
-        self.set(at, v);
-    }
-
     /// Offsets that differ from `other`, for showing what a change did.
+    #[cfg(test)]
     pub fn diff(&self, other: &ConfigPage) -> Vec<(usize, u8, u8)> {
         self.bytes
             .iter()
@@ -287,18 +243,6 @@ impl ConfigPage {
             .filter(|(_, (a, b))| a != b)
             .map(|(i, (a, b))| (i, *a, *b))
             .collect()
-    }
-
-    pub fn hex_dump(&self) -> String {
-        let mut s = String::new();
-        for (row, chunk) in self.bytes.chunks(16).enumerate() {
-            s.push_str(&format!("{:04x}  ", row * 16));
-            for b in chunk {
-                s.push_str(&format!("{b:02x} "));
-            }
-            s.push('\n');
-        }
-        s
     }
 }
 
@@ -449,12 +393,5 @@ mod tests {
         let page = ConfigPage::new(vec![1, 2, 3], Layout::default());
         assert_eq!(page.bytes.len(), PAGE_LEN);
         assert_eq!(page.bytes[3], 0);
-    }
-
-    #[test]
-    fn colour_slots_are_matched_by_distance() {
-        assert_eq!(nearest_color([250, 5, 5]), 0);
-        assert_eq!(nearest_color([0, 0, 240]), 2);
-        assert_eq!(nearest_color([250, 250, 250]), 6);
     }
 }

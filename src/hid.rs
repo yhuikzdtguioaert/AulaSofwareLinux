@@ -1,16 +1,6 @@
-//! Linux `hidraw` transport.
-//!
-//! The vendor driver talks to the keyboard with HID *feature* reports on a
-//! vendor-defined usage page (0xFF00). On Linux that is `/dev/hidrawN` plus the
-//! `HIDIOCGFEATURE` / `HIDIOCSFEATURE` ioctls — no libusb, no kernel module.
-//!
-//! A keyboard exposes several hidraw nodes (the boot keyboard, the consumer
-//! controls, the vendor collection). Only one of them carries the feature
-//! reports we need, so the descriptor of each candidate is parsed and the node
-//! that actually declares them is selected.
-
 use std::fs::File;
 use std::io;
+use std::os::unix::fs::OpenOptionsExt;
 use std::os::unix::io::{AsRawFd, RawFd};
 use std::path::{Path, PathBuf};
 
@@ -54,11 +44,12 @@ pub struct HidNode {
 }
 
 impl HidNode {
-    pub fn feature_len(&self, report_id: u8) -> Option<usize> {
-        self.feature_reports
-            .iter()
-            .find(|(id, _)| *id == report_id)
-            .map(|(_, len)| *len)
+    pub fn is_aula_bluetooth(&self) -> bool {
+        let bluetooth = std::fs::read_to_string(self.sys_path.join("device/uevent"))
+            .is_ok_and(|text| text.lines().any(|line| line.starts_with("HID_ID=0005:")));
+        bluetooth
+            && (self.name.to_ascii_lowercase().contains("aula")
+                || (self.vid == 0x3554 && self.pid == 0xfa08))
     }
 }
 
@@ -134,6 +125,7 @@ fn reports(desc: &[u8], main_tag: u8) -> Vec<(u8, usize)> {
     let mut report_size: u32 = 0;
     let mut report_count: u32 = 0;
     let mut bits: Vec<(u8, u64)> = Vec::new();
+    let mut stack = Vec::new();
 
     let mut i = 0usize;
     while i < desc.len() {
@@ -167,6 +159,12 @@ fn reports(desc: &[u8], main_tag: u8) -> Vec<(u8, usize)> {
             (1, 0x8) => report_id = data as u8,
             (1, 0x7) => report_size = data,
             (1, 0x9) => report_count = data,
+            (1, 0xa) => stack.push((report_id, report_size, report_count)),
+            (1, 0xb) => {
+                if let Some(saved) = stack.pop() {
+                    (report_id, report_size, report_count) = saved;
+                }
+            }
             // Main items: 0x8 Input, 0x9 Output, 0xB Feature
             (0, t) if t == main_tag => {
                 let add = (report_size as u64) * (report_count as u64);
@@ -198,6 +196,7 @@ impl HidDevice {
         let file = std::fs::OpenOptions::new()
             .read(true)
             .write(true)
+            .custom_flags(libc::O_NONBLOCK | libc::O_CLOEXEC)
             .open(&node.dev_path)?;
         Ok(HidDevice {
             file,
@@ -209,11 +208,43 @@ impl HidDevice {
         self.file.as_raw_fd()
     }
 
+    pub fn is_present(&self) -> bool {
+        let mut fd = libc::pollfd {
+            fd: self.fd(),
+            events: 0,
+            revents: 0,
+        };
+        let ready = unsafe { libc::poll(&mut fd, 1, 0) };
+        ready >= 0 && fd.revents & (libc::POLLERR | libc::POLLHUP | libc::POLLNVAL) == 0
+    }
+
+    #[cfg(test)]
+    pub fn from_test_socket(socket: std::os::unix::net::UnixDatagram) -> Self {
+        let fd: std::os::fd::OwnedFd = socket.into();
+        Self {
+            file: File::from(fd),
+            node: HidNode {
+                dev_path: PathBuf::from("/test/hidraw"),
+                sys_path: PathBuf::from("/test/sys"),
+                vid: 0x3554,
+                pid: 0xfa09,
+                name: "Test".into(),
+                feature_reports: Vec::new(),
+                output_reports: vec![(0x13, 19)],
+            },
+        }
+    }
+
     /// Send an output report (`write(2)`); `buf[0]` is the report id.
     pub fn write_report(&self, buf: &[u8]) -> io::Result<usize> {
         let ret = unsafe { libc::write(self.fd(), buf.as_ptr() as *const libc::c_void, buf.len()) };
         if ret < 0 {
             Err(io::Error::last_os_error())
+        } else if ret as usize != buf.len() {
+            Err(io::Error::new(
+                io::ErrorKind::WriteZero,
+                "short HID output report",
+            ))
         } else {
             Ok(ret as usize)
         }
@@ -221,25 +252,49 @@ impl HidDevice {
 
     /// Wait up to `timeout` for one input report. `None` on timeout.
     pub fn read_report(&self, timeout: std::time::Duration) -> io::Result<Option<Vec<u8>>> {
-        let mut pfd = libc::pollfd {
-            fd: self.fd(),
-            events: libc::POLLIN,
-            revents: 0,
-        };
-        let ms = timeout.as_millis().min(i32::MAX as u128) as libc::c_int;
-        let ready = unsafe { libc::poll(&mut pfd, 1, ms) };
-        if ready < 0 {
-            return Err(io::Error::last_os_error());
+        let deadline = std::time::Instant::now() + timeout;
+        loop {
+            let mut pfd = libc::pollfd {
+                fd: self.fd(),
+                events: libc::POLLIN,
+                revents: 0,
+            };
+            let remaining = deadline.saturating_duration_since(std::time::Instant::now());
+            if remaining.is_zero() {
+                return Ok(None);
+            }
+            let ms = remaining.as_millis().clamp(1, i32::MAX as u128) as i32;
+            let ready = unsafe { libc::poll(&mut pfd, 1, ms) };
+            if ready < 0 {
+                let error = io::Error::last_os_error();
+                if error.kind() == io::ErrorKind::Interrupted {
+                    continue;
+                }
+                return Err(error);
+            }
+            if ready == 0 {
+                return Ok(None);
+            }
+            if pfd.revents & (libc::POLLERR | libc::POLLHUP | libc::POLLNVAL) != 0 {
+                return Err(io::Error::from_raw_os_error(libc::ENODEV));
+            }
+            let mut buf = [0u8; 64];
+            let count = unsafe { libc::read(self.fd(), buf.as_mut_ptr().cast(), buf.len()) };
+            if count == 0 {
+                return Err(io::Error::from_raw_os_error(libc::ENODEV));
+            }
+            if count > 0 {
+                return Ok(Some(buf[..count as usize].to_vec()));
+            }
+            let error = io::Error::last_os_error();
+            if matches!(
+                error.kind(),
+                io::ErrorKind::Interrupted | io::ErrorKind::WouldBlock
+            ) {
+                continue;
+            }
+            return Err(error);
         }
-        if ready == 0 {
-            return Ok(None);
-        }
-        let mut buf = [0u8; 64];
-        let n = unsafe { libc::read(self.fd(), buf.as_mut_ptr() as *mut libc::c_void, buf.len()) };
-        if n < 0 {
-            return Err(io::Error::last_os_error());
-        }
-        Ok(Some(buf[..n as usize].to_vec()))
     }
 
     /// `HIDIOCSFEATURE`. `buf[0]` must be the report id.

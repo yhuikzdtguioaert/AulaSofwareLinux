@@ -1,62 +1,41 @@
-//! Background HID thread.
-//!
-//! Every transfer sleeps 20 ms per package (the vendor driver does the same and
-//! the firmware drops packets without it), so all device access lives on its
-//! own thread and the UI only ever exchanges messages with it.
-
-use std::sync::mpsc;
-use std::sync::mpsc::{Receiver, Sender};
+use std::io;
+use std::sync::mpsc::{self, Receiver, RecvTimeoutError, Sender};
 use std::thread;
+use std::time::Duration;
 
-use crate::config_page::PAGE_LEN;
+use crate::config_page::{ConfigPage, Layout, PAGE_LEN};
 use crate::device::{self, Keyboard};
 use crate::profile::DeviceProfile;
 
-#[derive(Debug, Clone)]
+pub const KNOB_ACTIONS: [(&str, [u8; 4]); 8] = [
+    ("Default", [0x07, 0, 0, 0x1d]),
+    ("Play / Pause", [0x02, 0, 0, 0xcd]),
+    ("Mute", [0x02, 0, 0, 0xe2]),
+    ("Next track", [0x02, 0, 0, 0xb5]),
+    ("Previous track", [0x02, 0, 0, 0xb6]),
+    ("Stop", [0x02, 0, 0, 0xb7]),
+    ("Volume up", [0x02, 0, 0, 0xe9]),
+    ("Volume down", [0x02, 0, 0, 0xea]),
+];
+
 pub enum Request {
-    /// Look for a keyboard and identify it.
     Connect,
-    /// Re-read the settings page, the per-key colours and the battery.
-    Refresh,
     WriteConfig(Vec<u8>),
     WriteRgbTable(Vec<u8>),
-    /// Write one byte of the settings page, for confirming an offset.
-    PokeConfig {
-        offset: usize,
-        value: u8,
-    },
+    SetKnob([u8; 4]),
     FactoryReset,
-    /// Raw read, exposed by `aula probe` for protocol work.
-    RawRead {
-        command: u8,
-        parameter: u8,
-        len: usize,
-    },
 }
 
-#[derive(Debug, Clone)]
 pub enum Event {
-    /// A keyboard was identified.
-    Connected {
-        profile_id: String,
-        display_name: String,
-        password: [u8; 6],
-        report_id: u8,
-        node: String,
-    },
+    Connected { profile_id: String, wireless: bool },
     Disconnected(String),
     Config(Vec<u8>),
+    SavedConfig { sent: Vec<u8>, bytes: Vec<u8> },
     RgbTable(Vec<u8>),
     Power(Vec<u8>),
-    RawData {
-        command: u8,
-        data: Vec<u8>,
-    },
-    /// Something the user should see in the status line.
+    Knob([u8; 4]),
     Notice(String),
     Error(String),
-    /// A line for the protocol log pane.
-    Log(String),
 }
 
 pub struct Worker {
@@ -65,171 +44,205 @@ pub struct Worker {
 }
 
 impl Worker {
-    pub fn spawn(profiles: Vec<DeviceProfile>) -> Worker {
-        let (req_tx, req_rx) = mpsc::channel::<Request>();
-        let (ev_tx, ev_rx) = mpsc::channel::<Event>();
+    pub fn spawn(profiles: Vec<DeviceProfile>) -> Self {
+        let (tx, requests) = mpsc::channel();
+        let (events, rx) = mpsc::channel();
         thread::Builder::new()
             .name("aula-hid".into())
-            .spawn(move || run(profiles, req_rx, ev_tx))
-            .expect("failed to start the HID thread");
-        Worker {
-            tx: req_tx,
-            rx: ev_rx,
-        }
+            .spawn(move || run(profiles, requests, events))
+            .expect("failed to start device thread");
+        Self { tx, rx }
     }
 
-    pub fn send(&self, r: Request) {
-        // The UI keeps running even if the HID thread has gone away; the
-        // missing replies surface as a stale status line rather than a panic.
-        let _ = self.tx.send(r);
+    pub fn send(&self, request: Request) {
+        let _ = self.tx.send(request);
     }
 
     pub fn poll(&self) -> Vec<Event> {
-        let mut out = Vec::new();
-        // try_recv stops on both Empty and Disconnected, which is what we want:
-        // a dead HID thread simply stops producing events.
-        while let Ok(e) = self.rx.try_recv() {
-            out.push(e);
-        }
-        out
+        self.rx.try_iter().collect()
     }
+}
+
+struct Session {
+    keyboard: Keyboard,
+    knob_slot: Option<usize>,
 }
 
 fn run(profiles: Vec<DeviceProfile>, rx: Receiver<Request>, tx: Sender<Event>) {
-    let mut kb: Option<Keyboard> = None;
-    while let Ok(req) = rx.recv() {
-        match req {
-            Request::Connect => match connect(&profiles, &tx) {
-                Some(k) => {
-                    kb = Some(k);
-                    refresh(kb.as_ref().unwrap(), &tx);
+    let mut session: Option<Session> = None;
+    loop {
+        let request = match rx.recv_timeout(Duration::from_secs(3)) {
+            Ok(request) => request,
+            Err(RecvTimeoutError::Disconnected) => break,
+            Err(RecvTimeoutError::Timeout) => {
+                if session
+                    .as_ref()
+                    .is_some_and(|s| !s.keyboard.link.is_present())
+                {
+                    session = None;
+                    let _ = tx.send(Event::Disconnected(String::new()));
                 }
-                None => kb = None,
-            },
-            Request::Refresh => match &kb {
-                Some(k) => refresh(k, &tx),
-                None => send_disconnected(&tx),
-            },
-            Request::WriteConfig(page) => with(&kb, &tx, |k| {
-                k.link.write_config(&page)?;
-                let _ = tx.send(Event::Log(format!("SET_LED {} bytes", page.len())));
-                Ok(())
-            }),
-            Request::WriteRgbTable(rgb) => with(&kb, &tx, |k| {
-                k.link.write_rgb_table(&rgb)?;
-                let _ = tx.send(Event::Log(format!("SET_RGB_TABLE {} bytes", rgb.len())));
-                Ok(())
-            }),
-            Request::PokeConfig { offset, value } => with(&kb, &tx, |k| {
-                let mut page = k.link.read_config(PAGE_LEN)?;
-                page.resize(PAGE_LEN, 0);
-                if offset < page.len() {
-                    page[offset] = value;
+                if session.is_some() {
+                    continue;
                 }
-                k.link.write_config(&page)?;
-                let _ = tx.send(Event::Log(format!("poke [0x{offset:02x}] = 0x{value:02x}")));
-                let back = k.link.read_config(PAGE_LEN)?;
-                let _ = tx.send(Event::Config(back));
-                Ok(())
-            }),
-            Request::FactoryReset => with(&kb, &tx, |k| {
-                k.link.reset()?;
-                let _ = tx.send(Event::Log("RESET".into()));
-                Ok(())
-            }),
-            Request::RawRead {
-                command,
-                parameter,
-                len,
-            } => with(&kb, &tx, |k| {
-                let data = k.link.read(command, parameter, len)?;
-                let _ = tx.send(Event::Log(format!(
-                    "read cmd=0x{command:02x} param=0x{parameter:02x} -> {} bytes",
-                    data.len()
-                )));
-                let _ = tx.send(Event::RawData { command, data });
-                Ok(())
-            }),
+                Request::Connect
+            }
+        };
+        if matches!(request, Request::Connect) {
+            session = connect(&profiles, &tx);
+            continue;
+        }
+        let Some(active) = &mut session else { continue };
+        let result = handle(active, request, &tx);
+        if let Err(error) = result {
+            eprintln!("aula: {error}");
+            let lost = matches!(
+                error.raw_os_error(),
+                Some(libc::ENODEV | libc::EIO | libc::ENOENT)
+            );
+            let message = match error.kind() {
+                io::ErrorKind::TimedOut => "Wake the keyboard with a key press.",
+                io::ErrorKind::PermissionDenied => "Run the installer to allow device access.",
+                io::ErrorKind::Unsupported => "Connect with USB to use this setting.",
+                _ => "Could not save settings. Reconnect the keyboard.",
+            };
+            let _ = tx.send(Event::Error(message.into()));
+            if lost {
+                session = None;
+                let _ = tx.send(Event::Disconnected("Reconnect the keyboard.".into()));
+            }
         }
     }
 }
 
-fn connect(profiles: &[DeviceProfile], tx: &Sender<Event>) -> Option<Keyboard> {
+fn connect(profiles: &[DeviceProfile], tx: &Sender<Event>) -> Option<Session> {
     let (found, problems) = device::autodetect(profiles);
-    for p in problems {
-        let _ = tx.send(Event::Log(p));
-    }
-    match found {
-        Some(kb) => {
-            let _ = tx.send(Event::Connected {
-                profile_id: kb.profile.id.clone(),
-                display_name: kb.profile.name.clone(),
-                password: kb.password,
-                report_id: kb.link.report_id(),
-                node: kb.link.node_path(),
-            });
-            Some(kb)
+    let Some(keyboard) = found else {
+        let message = if problems.iter().any(|p| p.contains("permission denied")) {
+            "Run the installer to allow device access."
+        } else if !problems.is_empty() {
+            "Wake the keyboard with a key press."
+        } else if crate::hid::enumerate()
+            .iter()
+            .any(|n| n.is_aula_bluetooth())
+        {
+            "Connect with USB or the 2.4 GHz receiver to change settings."
+        } else {
+            "Connect your keyboard."
+        };
+        let _ = tx.send(Event::Disconnected(message.into()));
+        return None;
+    };
+    let page = match keyboard.link.read_config(PAGE_LEN).and_then(valid_config) {
+        Ok(page) => page,
+        Err(error) => {
+            eprintln!("aula: reading settings: {error}");
+            let message = if crate::hid::enumerate()
+                .iter()
+                .any(|n| n.is_aula_bluetooth())
+            {
+                "Connect with USB or the 2.4 GHz receiver to change settings."
+            } else {
+                "Wake the keyboard with a key press."
+            };
+            let _ = tx.send(Event::Disconnected(message.into()));
+            return None;
         }
-        None => {
-            send_disconnected(tx);
-            None
+    };
+    let _ = tx.send(Event::Connected {
+        profile_id: keyboard.profile.id.clone(),
+        wireless: keyboard.link.is_wireless(),
+    });
+    let _ = tx.send(Event::Config(page));
+    if !keyboard.link.is_wireless() {
+        if let Ok(rgb) = keyboard.link.read_rgb_table() {
+            let _ = tx.send(Event::RgbTable(rgb));
         }
     }
+    if keyboard.profile.show_power || keyboard.link.is_wireless() {
+        if let Ok(power) = keyboard.link.power() {
+            let _ = tx.send(Event::Power(power));
+        }
+    }
+    let knob = (!keyboard.link.is_wireless())
+        .then_some(&keyboard)
+        .filter(|keyboard| {
+            keyboard
+                .profile
+                .keys
+                .iter()
+                .any(|key| key.name.eq_ignore_ascii_case("wheel"))
+        })
+        .and_then(|keyboard| {
+            keyboard
+                .link
+                .read_matrix(0, keyboard.profile.matrix_len)
+                .ok()
+        })
+        .and_then(|matrix| crate::remap::locate_knob(&keyboard.profile, &matrix));
+    if let Some((_, action)) = knob {
+        let _ = tx.send(Event::Knob(action));
+    }
+    let knob_slot = knob.map(|(slot, _)| slot);
+    Some(Session {
+        keyboard,
+        knob_slot,
+    })
 }
 
-fn send_disconnected(tx: &Sender<Event>) {
-    let _ = tx.send(Event::Disconnected(
-        "No AULA keyboard found. Check the cable, or that the udev rule is installed.".into(),
-    ));
+fn valid_config(bytes: Vec<u8>) -> io::Result<Vec<u8>> {
+    if bytes.len() != PAGE_LEN || !ConfigPage::new(bytes.clone(), Layout::default()).looks_valid() {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "invalid settings page",
+        ));
+    }
+    Ok(bytes)
 }
 
-fn refresh(kb: &Keyboard, tx: &Sender<Event>) {
-    match kb.link.read_config(PAGE_LEN) {
-        Ok(page) => {
-            let _ = tx.send(Event::Log(format!("GET_LED -> {} bytes", page.len())));
-            let _ = tx.send(Event::Config(page));
+fn handle(session: &mut Session, request: Request, tx: &Sender<Event>) -> io::Result<()> {
+    let kb = &session.keyboard;
+    match request {
+        Request::WriteConfig(page) => {
+            let sent = valid_config(page)?;
+            kb.link.write_config(&sent)?;
+            let bytes = valid_config(kb.link.read_config(PAGE_LEN)?)?;
+            let _ = tx.send(Event::SavedConfig { sent, bytes });
         }
-        Err(e) => {
-            let _ = tx.send(Event::Error(format!(
-                "reading the settings page failed: {e}"
-            )));
+        Request::WriteRgbTable(rgb) => {
+            let mut page = valid_config(kb.link.read_config(PAGE_LEN)?)?;
+            kb.link.write_rgb_table(&rgb)?;
+            page[0x09] = 1;
+            page[Layout::load_override(&kb.profile.dir).effect] = 21;
+            if page[0x75] == 0 {
+                page[0x75] = 4;
+            }
+            kb.link.write_config(&page)?;
+            let _ = tx.send(Event::Config(valid_config(kb.link.read_config(PAGE_LEN)?)?));
         }
+        Request::SetKnob(action) => {
+            let slot = session
+                .knob_slot
+                .ok_or_else(|| io::Error::other("knob not found"))?;
+            let mut matrix = kb.link.read_matrix(0, kb.profile.matrix_len)?;
+            let page = valid_config(kb.link.read_config(PAGE_LEN)?)?;
+            // Store the slot before writing so it remains discoverable after a restart.
+            crate::remap::set_knob(&mut matrix, slot, action)?;
+            crate::remap::remember_knob(&kb.profile, slot, action)?;
+            kb.link.write_matrix(0, &matrix)?;
+            kb.link.write_config(&page)?;
+            let back = kb.link.read_matrix(0, kb.profile.matrix_len)?;
+            if back.get(slot * 4..slot * 4 + 4) != Some(action.as_slice()) {
+                return Err(io::Error::other("knob setting did not persist"));
+            }
+            let _ = tx.send(Event::Knob(action));
+        }
+        Request::FactoryReset => {
+            kb.link.reset()?;
+            let _ = tx.send(Event::Config(valid_config(kb.link.read_config(PAGE_LEN)?)?));
+        }
+        Request::Connect => return Ok(()),
     }
-
-    let leds = kb.profile.led_count();
-    if leds > 0 {
-        match kb.link.read_rgb_table(leds) {
-            Ok(rgb) => {
-                let _ = tx.send(Event::RgbTable(rgb));
-            }
-            Err(e) => {
-                let _ = tx.send(Event::Log(format!("per-key colours unavailable: {e}")));
-            }
-        }
-    }
-
-    if kb.profile.show_power {
-        match kb.link.power() {
-            Ok(p) => {
-                let _ = tx.send(Event::Power(p));
-            }
-            Err(e) => {
-                let _ = tx.send(Event::Log(format!("battery unavailable: {e}")));
-            }
-        }
-    }
-}
-
-fn with<F>(kb: &Option<Keyboard>, tx: &Sender<Event>, f: F)
-where
-    F: FnOnce(&Keyboard) -> std::io::Result<()>,
-{
-    match kb {
-        None => send_disconnected(tx),
-        Some(k) => {
-            if let Err(e) = f(k) {
-                let _ = tx.send(Event::Error(format!("{e}")));
-            }
-        }
-    }
+    let _ = tx.send(Event::Notice(String::new()));
+    Ok(())
 }

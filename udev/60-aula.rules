@@ -1,18 +1,3 @@
-# AULA keyboards — let the logged-in user reach the vendor HID channel.
-#
-# The number matters. systemd turns TAG+="uaccess" into an ACL for the seated
-# user from /usr/lib/udev/rules.d/73-seat-late.rules, and udev runs rule files
-# in ascending order — so a file numbered above 73 sets the tag too late and no
-# ACL is ever granted. Keep this below 73.
-#
-# Install:
-#   sudo cp udev/60-aula.rules /etc/udev/rules.d/
-#   sudo udevadm control --reload && sudo udevadm trigger
-# then replug the keyboard.
-#
-# Regenerate for a wider set of models with:  aula udev
-
-# Wired: every keyboard in this family enumerates as 258a:010c.
-KERNEL=="hidraw*", ATTRS{idVendor}=="258a", ATTRS{idProduct}=="010c", TAG+="uaccess", MODE="0660"
-# 2.4 GHz dongle used by the tri-mode models.
-KERNEL=="hidraw*", ATTRS{idVendor}=="3554", ATTRS{idProduct}=="fa09", TAG+="uaccess", MODE="0660"
+# AULA keyboard configuration interfaces. Keep before 73-seat-late.rules.
+SUBSYSTEM=="hidraw", ATTRS{idVendor}=="258a", ATTRS{idProduct}=="010c", TAG+="uaccess", MODE="0660"
+SUBSYSTEM=="hidraw", ATTRS{idVendor}=="3554", ATTRS{idProduct}=="fa09", TAG+="uaccess", MODE="0660"

@@ -1,30 +1,3 @@
-//! The AULA / BYCOMBO4 vendor HID protocol.
-//!
-//! Recovered from `OemDrv.exe` (the driver shipped with every AULA keyboard
-//! package; internally `CDevG5KB`). Everything travels over HID feature
-//! reports on the vendor usage page:
-//!
-//! ```text
-//! byte 0      HID report id      6 when the firmware id is 0x18, else 9
-//! byte 1      command            high bit set = read
-//! byte 2      parameter          layer index / sub-selector, command specific
-//! byte 3      0
-//! byte 4      total packages     ceil(len / 512)
-//! byte 5      package index      0-based
-//! byte 6..7   payload length     little endian, <= 512
-//! byte 8..    payload            padded with zeroes
-//! ```
-//!
-//! The whole report is always transferred at its declared size (520 bytes for
-//! this family), regardless of how much payload a package carries. Transfers
-//! larger than 512 bytes are split into consecutively numbered packages.
-//!
-//! The 2.4 GHz dongle carries the same commands differently; see [`wireless`].
-//!
-//! A read is a write of the request header followed by a `GET_FEATURE` on the
-//! same report id; the reply repeats the header and carries the data from
-//! byte 8 onwards.
-
 use std::io;
 use std::time::Duration;
 
@@ -57,20 +30,10 @@ pub mod cmd {
     pub const SET_LED: u8 = 0x04;
     /// Read the lighting / configuration page.
     pub const GET_LED: u8 = 0x84;
-    /// Write macro storage.
-    pub const SET_MACRO: u8 = 0x05;
-    /// Read macro storage.
-    pub const GET_MACRO: u8 = 0x85;
-    /// Write the "game mode" / locked-key table.
-    pub const SET_GAME: u8 = 0x06;
-    /// Read it back.
-    pub const GET_GAME: u8 = 0x86;
     /// Write the per-key RGB table (3 bytes per LED).
-    pub const SET_RGB_TABLE: u8 = 0x0a;
+    pub const SET_RGB_TABLE: u8 = 0x06;
     /// Read the per-key RGB table.
-    pub const GET_RGB_TABLE: u8 = 0x8a;
-    /// Screen / display parameters (devices with a TFT).
-    pub const SET_SCREEN: u8 = 0x0b;
+    pub const GET_RGB_TABLE: u8 = 0x86;
     /// Reset the device to its factory configuration.
     pub const RESET: u8 = 0x11;
 
@@ -141,7 +104,7 @@ pub fn package_count(len: usize) -> u8 {
 /// idle minutes, so a timeout usually means "asleep" rather than "broken".
 pub mod wireless {
     use std::io;
-    use std::time::Duration;
+    use std::time::{Duration, Instant};
 
     use crate::hid::HidDevice;
 
@@ -186,15 +149,18 @@ pub mod wireless {
     fn timed_out(what: &str) -> io::Error {
         io::Error::new(
             io::ErrorKind::TimedOut,
-            format!("no answer to {what} over the dongle — the keyboard may be asleep, press a key"),
+            format!(
+                "no answer to {what} over the dongle — the keyboard may be asleep, press a key"
+            ),
         )
     }
 
     /// Next well-formed packet for `command` (reads and acks echo the opcode,
     /// with bit 7 flagging an error on acks).
     fn next_reply(dev: &HidDevice, command: u8) -> io::Result<Option<Vec<u8>>> {
-        loop {
-            match dev.read_report(REPLY_TIMEOUT)? {
+        let deadline = Instant::now() + REPLY_TIMEOUT;
+        while Instant::now() < deadline {
+            match dev.read_report(deadline.saturating_duration_since(Instant::now()))? {
                 None => return Ok(None),
                 Some(r) if r.len() >= PACKET_LEN && r[0] == REPORT_ID => {
                     if r[1] & 0x7f == command & 0x7f && r[PACKET_LEN - 1] == checksum(&r) {
@@ -204,10 +170,16 @@ pub mod wireless {
                 Some(_) => {}
             }
         }
+        Ok(None)
     }
 
     pub fn drain(dev: &HidDevice) {
-        while let Ok(Some(_)) = dev.read_report(DRAIN_TIMEOUT) {}
+        let deadline = Instant::now() + Duration::from_millis(150);
+        while Instant::now() < deadline {
+            if !matches!(dev.read_report(DRAIN_TIMEOUT), Ok(Some(_))) {
+                break;
+            }
+        }
     }
 
     /// Issue read opcode `command` and reassemble the packages it streams back.
@@ -216,14 +188,24 @@ pub mod wireless {
             drain(dev);
             dev.write_report(&packet(command, 0, &[], 1, 0))?;
             let mut chunks: Vec<Option<Vec<u8>>> = Vec::new();
-            while let Some(r) = next_reply(dev, command)? {
+            let deadline = Instant::now() + Duration::from_secs(4);
+            while Instant::now() < deadline {
+                let Some(r) = next_reply(dev, command)? else {
+                    break;
+                };
+                if r[1] & 0x80 != 0 {
+                    return Err(io::Error::other("receiver rejected the read"));
+                }
                 let total = r[2] as usize;
                 let (idx, len) = (r[3] as usize, (r[4] & 0x0f) as usize);
                 if total == 0 || idx >= total || len > CHUNK {
                     continue;
                 }
-                if chunks.len() != total {
+                if chunks.is_empty() {
                     chunks = vec![None; total];
+                }
+                if chunks.len() != total {
+                    continue;
                 }
                 chunks[idx] = Some(r[5..5 + len].to_vec());
                 if chunks.iter().all(Option::is_some) {
@@ -242,7 +224,10 @@ pub mod wireless {
         drain(dev);
         let packages = data.len().div_ceil(CHUNK);
         if packages > u8::MAX as usize {
-            return Err(io::Error::new(io::ErrorKind::InvalidInput, "payload too large"));
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                "payload too large",
+            ));
         }
         for (index, chunk) in data.chunks(CHUNK).enumerate() {
             dev.write_report(&packet(command, 1, chunk, packages as u8, index as u8))?;
@@ -251,7 +236,11 @@ pub mod wireless {
                 continue;
             }
             match next_reply(dev, command)? {
-                None => return Err(timed_out(&format!("package {index} of write 0x{command:02x}"))),
+                None => {
+                    return Err(timed_out(&format!(
+                        "package {index} of write 0x{command:02x}"
+                    )))
+                }
                 Some(ack) if ack[1] & 0x80 != 0 => {
                     return Err(io::Error::other(format!(
                         "keyboard rejected package {index} (checksum error)"
@@ -268,6 +257,72 @@ pub mod wireless {
         std::thread::sleep(Duration::from_millis(100));
         Ok(())
     }
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+        use std::os::unix::net::UnixDatagram;
+
+        #[test]
+        fn ignores_corrupt_checksums_and_unrelated_packets() {
+            let (socket, peer) = UnixDatagram::pair().unwrap();
+            let dev = HidDevice::from_test_socket(socket);
+            let mut corrupt = packet(0x44, 0, &[9], 1, 0);
+            corrupt[19] ^= 1;
+            peer.send(&corrupt).unwrap();
+            peer.send(&packet(0x4a, 0, &[20], 1, 0)).unwrap();
+            let expected = packet(0x44, 0, &[1, 2], 1, 0);
+            peer.send(&expected).unwrap();
+            assert_eq!(next_reply(&dev, 0x44).unwrap().unwrap(), expected);
+        }
+
+        #[test]
+        fn unrelated_traffic_cannot_extend_the_reply_deadline() {
+            let (socket, peer) = UnixDatagram::pair().unwrap();
+            let dev = HidDevice::from_test_socket(socket);
+            let producer = std::thread::spawn(move || {
+                let deadline = Instant::now() + Duration::from_millis(1750);
+                while Instant::now() < deadline {
+                    if peer.send(&packet(0x4a, 0, &[], 1, 0)).is_err() {
+                        break;
+                    }
+                    std::thread::sleep(Duration::from_millis(5));
+                }
+            });
+            let start = Instant::now();
+            assert!(next_reply(&dev, 0x44).unwrap().is_none());
+            assert!(start.elapsed() < Duration::from_secs(2));
+            drop(dev);
+            producer.join().unwrap();
+        }
+    }
+}
+
+const RGB_SLOTS: usize = 126;
+
+fn rgb_planes(rgb: &[u8]) -> io::Result<Vec<u8>> {
+    if rgb.len() != RGB_SLOTS * 3 {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            "invalid per-key colour table",
+        ));
+    }
+    let mut planes = vec![0; rgb.len()];
+    for (slot, color) in rgb.chunks(3).enumerate() {
+        for channel in 0..3 {
+            planes[channel * RGB_SLOTS + slot] = color[channel];
+        }
+    }
+    Ok(planes)
+}
+
+fn check_transfer_len(len: usize) -> io::Result<()> {
+    if len > PAGE * u8::MAX as usize {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            "transfer too large",
+        ));
+    }
+    Ok(())
 }
 
 /// Report id of the dongle's vendor channel.
@@ -334,8 +389,8 @@ impl Link {
         self.dev.node.dev_path.display().to_string()
     }
 
-    pub fn set_delay(&mut self, delay: Duration) {
-        self.delay = delay;
+    pub fn is_present(&self) -> bool {
+        self.dev.node.sys_path.exists() && self.dev.node.dev_path.exists() && self.dev.is_present()
     }
 
     /// Send `data`, split into packages, with the given command/parameter.
@@ -364,6 +419,7 @@ impl Link {
         if self.wireless {
             return self.read_wireless(command, parameter, len);
         }
+        check_transfer_len(len)?;
         let packages = package_count(len);
         let mut out = Vec::with_capacity(len);
         for index in 0..packages {
@@ -380,8 +436,18 @@ impl Link {
             std::thread::sleep(self.delay);
             let mut reply = vec![0u8; REPORT_LEN];
             reply[0] = self.report_id;
-            self.dev.get_feature(&mut reply)?;
-            if reply[1] != command {
+            let received = self.dev.get_feature(&mut reply)?;
+            if received < HEADER + chunk {
+                return Err(io::Error::new(
+                    io::ErrorKind::UnexpectedEof,
+                    "short HID feature report",
+                ));
+            }
+            if reply[0] != self.report_id
+                || reply[1] != command
+                || reply[2] != parameter
+                || reply[5] != index
+            {
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidData,
                     format!(
@@ -404,10 +470,16 @@ impl Link {
             (cmd::GET_POWER, _) => (wireless::GET_BATTERY, 2),
             (cmd::GET_LED, 0) => (0x44, len),
             (cmd::GET_MATRIX, 0) => (0x41, len),
-            (cmd::GET_MATRIX, 1) => (0x43, len),
             _ => return Err(unsupported_wireless(&format!("read 0x{command:02x}"))),
         };
         let mut data = wireless::read(&self.dev, opcode)?;
+        if command == cmd::GET_MATRIX
+            && !data.is_empty()
+            && data.len() <= want
+            && data.len().is_multiple_of(4)
+        {
+            return Ok(data);
+        }
         if data.len() < want {
             return Err(io::Error::new(
                 io::ErrorKind::UnexpectedEof,
@@ -421,7 +493,7 @@ impl Link {
     fn write_wireless(&self, command: u8, parameter: u8, data: &[u8]) -> io::Result<()> {
         match (command, parameter) {
             (cmd::SET_LED, 0) => wireless::write(&self.dev, cmd::SET_LED, data),
-            (cmd::SET_MATRIX, 0) => wireless::write(&self.dev, 0x01, data),
+            (cmd::SET_MATRIX, _) => Err(unsupported_wireless("key assignments")),
             (cmd::SET_RGB_TABLE, _) => Err(unsupported_wireless("per-key colour")),
             (cmd::RESET, _) => Err(unsupported_wireless("factory reset")),
             _ => Err(unsupported_wireless(&format!("write 0x{command:02x}"))),
@@ -465,16 +537,29 @@ impl Link {
 
     /// Write the lighting / configuration page.
     pub fn write_config(&self, page: &[u8]) -> io::Result<()> {
+        if page.len() != crate::config_page::PAGE_LEN || !page.ends_with(&[0x5a, 0xa5]) {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                "invalid settings page",
+            ));
+        }
         self.write(cmd::SET_LED, 0, page)
     }
 
-    /// Per-key colours, three bytes (R, G, B) per LED index.
+    /// Per-key colours use three planes of 126 slots, independent of key count.
     pub fn write_rgb_table(&self, rgb: &[u8]) -> io::Result<()> {
-        self.write(cmd::SET_RGB_TABLE, 0, rgb)
+        self.write(cmd::SET_RGB_TABLE, 0, &rgb_planes(rgb)?)
     }
 
-    pub fn read_rgb_table(&self, leds: usize) -> io::Result<Vec<u8>> {
-        self.read(cmd::GET_RGB_TABLE, 0, leds * 3)
+    pub fn read_rgb_table(&self) -> io::Result<Vec<u8>> {
+        let planes = self.read(cmd::GET_RGB_TABLE, 0, RGB_SLOTS * 3)?;
+        let mut rgb = vec![0; RGB_SLOTS * 3];
+        for (slot, color) in rgb.chunks_mut(3).enumerate() {
+            for channel in 0..3 {
+                color[channel] = planes[channel * RGB_SLOTS + slot];
+            }
+        }
+        Ok(rgb)
     }
 
     /// Key matrix for one Fn layer; 4 bytes per key slot.
@@ -492,21 +577,26 @@ impl Link {
     }
 }
 
-/// The report id this firmware revision uses, per `CDevG5KB`.
-///
-/// `Fw=` in the device profile carries the same number (24 == 0x18 for every
-/// currently shipped AULA keyboard).
-pub fn report_id_for_firmware(fw: i64) -> u8 {
-    if fw == 0x18 {
-        6
-    } else {
-        9
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn per_key_colours_use_planes_and_preserve_all_slots() {
+        let mut rgb = vec![0; RGB_SLOTS * 3];
+        rgb[..3].copy_from_slice(&[1, 2, 3]);
+        rgb[125 * 3..].copy_from_slice(&[4, 5, 6]);
+        let planes = rgb_planes(&rgb).unwrap();
+        assert_eq!((planes[0], planes[126], planes[252]), (1, 2, 3));
+        assert_eq!((planes[125], planes[251], planes[377]), (4, 5, 6));
+        assert!(rgb_planes(&rgb[..270]).is_err());
+    }
+
+    #[test]
+    fn oversized_transfers_do_not_wrap_the_package_count() {
+        assert!(check_transfer_len(PAGE * 255).is_ok());
+        assert!(check_transfer_len(PAGE * 255 + 1).is_err());
+    }
 
     #[test]
     fn header_matches_the_vendor_layout() {
@@ -564,12 +654,5 @@ mod tests {
         assert_eq!(second[4], 2, "total packages");
         assert_eq!(second[5], 1, "package index");
         assert_eq!(u16::from_le_bytes([second[6], second[7]]), 88);
-    }
-
-    #[test]
-    fn report_id_follows_the_firmware_id() {
-        assert_eq!(report_id_for_firmware(24), 6);
-        assert_eq!(report_id_for_firmware(0x18), 6);
-        assert_eq!(report_id_for_firmware(0x1a), 9);
     }
 }

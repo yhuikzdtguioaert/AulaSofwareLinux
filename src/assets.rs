@@ -1,13 +1,3 @@
-//! Locating and loading the vendor artwork and UI strings.
-//!
-//! The `assets/` tree holds everything taken from the AULA installers:
-//!
-//! ```text
-//! assets/skins/…            the original bitmaps, shared by every model
-//! assets/text/en.xml        the original UI strings
-//! assets/devices/<id>/      device.ini, keyimg.png, effect definitions
-//! ```
-
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
@@ -104,14 +94,6 @@ impl Strings {
             Some(v) if !v.is_empty() => v.replace('_', " "),
             _ => format!("Effect {ui_index}"),
         }
-    }
-
-    pub fn len(&self) -> usize {
-        self.map.len()
-    }
-
-    pub fn is_empty(&self) -> bool {
-        self.map.is_empty()
     }
 }
 

@@ -1,0 +1,56 @@
+name: Build
+run-name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - name: Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libxkbcommon-dev libwayland-dev libgl1-mesa-dev \
+            libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev \
+            libx11-dev libxrandr-dev libxi-dev libxcursor-dev
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.99.1
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+      - name: Check
+        run: |
+          cargo fmt --check
+          cargo clippy --locked --all-targets -- -D warnings
+          cargo test --locked
+      - name: Build
+        run: cargo build --release --locked
+      - name: Package
+        run: |
+          mkdir -p dist/aula
+          cp target/release/aula install.sh LICENSE README.md dist/aula/
+          cp -r assets udev dist/aula/
+          tar -C dist -czf aula-linux-x86_64.tar.gz aula
+      - uses: actions/upload-artifact@v4
+        with:
+          name: aula-linux-x86_64
+          path: aula-linux-x86_64.tar.gz
+          if-no-files-found: error
+          retention-days: 30

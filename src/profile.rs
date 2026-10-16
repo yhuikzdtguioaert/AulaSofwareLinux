@@ -1,11 +1,3 @@
-//! Device descriptions, read from the vendor `KB.ini` shipped with each
-//! AULA package (see `assets/devices/<id>/device.ini`).
-//!
-//! One `KB.ini` fully describes a keyboard: USB ids, the 6-byte password that
-//! identifies the model behind the shared 258a:010c pair, the pixel geometry of
-//! every key on `keyimg.png`, the LED index of every key, and which hardware
-//! lighting effects the firmware exposes.
-
 use std::path::{Path, PathBuf};
 
 use crate::ini::{self, Ini};
@@ -18,10 +10,6 @@ pub struct KeyDef {
     /// Comment above the entry, e.g. `Esc`. Used as the on-screen caption.
     pub name: String,
     pub rect: [i32; 4],
-    /// Function class: 0x02 = plain key, 0x09 = multimedia / system action.
-    pub major: u8,
-    pub minor: u8,
-    pub param: u32,
     /// Position of this key in the firmware LED table.
     pub led: i32,
 }
@@ -35,15 +23,6 @@ impl KeyDef {
     }
     pub fn is_drawn(&self) -> bool {
         self.width() > 0 && self.height() > 0
-    }
-    /// The 32-bit function id the firmware stores for this key.
-    pub fn function_id(&self) -> u32 {
-        u32::from_be_bytes([
-            self.major,
-            self.minor,
-            (self.param >> 8) as u8,
-            self.param as u8,
-        ])
     }
 }
 
@@ -59,7 +38,6 @@ pub struct LedOpt {
     pub hw_effect: u8,
     pub has_speed: bool,
     pub has_light: bool,
-    pub has_direction: bool,
     pub has_random: bool,
     pub has_color: bool,
 }
@@ -70,14 +48,6 @@ impl LedOpt {
     pub fn is_off(&self) -> bool {
         self.hw_effect == 0
     }
-}
-
-/// A layer of alternate key functions (`[FN1]`, `[FN2]`, …).
-#[derive(Debug, Clone)]
-pub struct FnLayer {
-    pub name: String,
-    /// Keyed by the same `K<n>` index as [`KeyDef::index`].
-    pub entries: Vec<(u32, u8, u8, u32)>,
 }
 
 #[derive(Debug, Clone)]
@@ -94,13 +64,8 @@ pub struct DeviceProfile {
     /// The 6 bytes returned by the `read password` command; this is what tells
     /// one AULA model from another, since they all share 258a:010c.
     pub password: [u8; 6],
-    pub fw: i64,
-    pub crc: bool,
     pub matrix_len: usize,
-    pub channel_mask: u8,
     pub show_power: bool,
-    pub led_mask: u32,
-    pub default_led_index: u8,
 
     pub light_ui: Vec<i64>,
     pub light_hw: Vec<i64>,
@@ -112,10 +77,8 @@ pub struct DeviceProfile {
 
     pub color_key_hover: [u8; 3],
     pub color_key_down: [u8; 3],
-    pub color_key_has_func: [u8; 3],
 
     pub keys: Vec<KeyDef>,
-    pub fn_layers: Vec<FnLayer>,
     pub keyimg: Option<PathBuf>,
 }
 
@@ -162,13 +125,11 @@ impl DeviceProfile {
                 .map(|v| v as u16)
                 .filter(|v| *v != 0),
             password,
-            fw: ini.num("OPT", "Fw").unwrap_or(0),
-            crc: ini.num("OPT", "CRC").unwrap_or(0) != 0,
+
             matrix_len: ini.num("OPT", "MatrixLen").unwrap_or(128) as usize,
-            channel_mask: ini.num("OPT", "ChannelMask").unwrap_or(1) as u8,
+
             show_power: ini.num("OPT", "ShowPower").unwrap_or(0) != 0,
-            led_mask: ini.num("OPT", "LedMask").unwrap_or(0) as u32,
-            default_led_index: ini.num("OPT", "DefLedIndex").unwrap_or(0) as u8,
+
             light_ui: ini.nums("OPT", "Light"),
             light_hw: ini.nums("OPT", "LightHW"),
             speed_ui: ini.nums("OPT", "Speed"),
@@ -178,9 +139,8 @@ impl DeviceProfile {
             led_opts: Vec::new(),
             color_key_hover: ini.rgb("OPT", "clrKeyOv").unwrap_or([255, 255, 255]),
             color_key_down: ini.rgb("OPT", "clrKeyDn").unwrap_or([255, 0, 0]),
-            color_key_has_func: ini.rgb("OPT", "clrKeyHasFunc").unwrap_or([10, 147, 255]),
+
             keys: Vec::new(),
-            fn_layers: Vec::new(),
             keyimg,
         };
 
@@ -203,51 +163,14 @@ impl DeviceProfile {
                 hw_effect: v[1] as u8,
                 has_speed: v[2] != 0,
                 has_light: v[3] != 0,
-                has_direction: v[4] != 0,
+
                 has_random: v[5] != 0,
                 has_color: v[6] != 0,
             });
         }
 
         profile.keys = parse_keys(text);
-        for n in 1..=8 {
-            let sect = format!("FN{n}");
-            let Some(map) = ini.section(&sect) else {
-                continue;
-            };
-            let mut entries = Vec::new();
-            for (k, v) in map {
-                let Some(idx) = k.strip_prefix('K').and_then(|s| s.parse::<u32>().ok()) else {
-                    continue;
-                };
-                let f: Vec<i64> = v.split(',').filter_map(ini::parse_num).collect();
-                if f.len() >= 3 {
-                    entries.push((idx, f[0] as u8, f[1] as u8, f[2] as u32));
-                }
-            }
-            entries.sort_by_key(|e| e.0);
-            profile.fn_layers.push(FnLayer {
-                name: sect,
-                entries,
-            });
-        }
-
         Ok(profile)
-    }
-
-    /// Bounding box of the drawn keys, in `keyimg.png` pixel space.
-    pub fn key_bounds(&self) -> [i32; 4] {
-        let mut b = [i32::MAX, i32::MAX, 0, 0];
-        for k in self.keys.iter().filter(|k| k.is_drawn()) {
-            b[0] = b[0].min(k.rect[0]);
-            b[1] = b[1].min(k.rect[1]);
-            b[2] = b[2].max(k.rect[2]);
-            b[3] = b[3].max(k.rect[3]);
-        }
-        if b[0] == i32::MAX {
-            b = [0, 0, 1, 1];
-        }
-        b
     }
 
     /// Highest LED index referenced by any key, i.e. the size of the per-key
@@ -368,9 +291,7 @@ fn parse_keys(text: &str) -> Vec<KeyDef> {
             index,
             name: std::mem::take(&mut pending_name),
             rect: [f[0] as i32, f[1] as i32, f[2] as i32, f[3] as i32],
-            major: f[4] as u8,
-            minor: f[5] as u8,
-            param: f[6] as u32,
+
             led: f[7] as i32,
         });
     }
@@ -452,7 +373,6 @@ K1=0x09,0x01,0x07000004
         assert_eq!(p.keys.len(), 2);
         assert_eq!(p.keys[0].name, "Esc");
         assert_eq!(p.keys[0].rect, [27, 33, 53, 61]);
-        assert_eq!(p.keys[0].minor, 0x1b);
         assert!(p.keys[0].is_drawn());
         assert_eq!(p.keys[1].name, "Wheel");
         assert!(!p.keys[1].is_drawn());
@@ -511,12 +431,5 @@ K1=0x09,0x01,0x07000004
             0,
             "unknown values fall back to the first step"
         );
-    }
-
-    #[test]
-    fn reads_fn_layer() {
-        let p = sample();
-        assert_eq!(p.fn_layers.len(), 1);
-        assert_eq!(p.fn_layers[0].entries, vec![(1, 0x09, 0x01, 0x07000004)]);
     }
 }
