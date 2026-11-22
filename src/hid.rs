@@ -41,6 +41,8 @@ pub struct HidNode {
     pub feature_reports: Vec<(u8, usize)>,
     /// `(report id, payload size in bytes)` of every declared output report.
     pub output_reports: Vec<(u8, usize)>,
+    pub input_reports: Vec<(u8, usize)>,
+    pub application_usages: Vec<(u16, u16)>,
 }
 
 impl HidNode {
@@ -102,6 +104,8 @@ fn read_node(sys: &Path) -> Option<HidNode> {
         name: hid_name,
         feature_reports: feature_reports(&desc),
         output_reports: output_reports(&desc),
+        input_reports: reports(&desc, 0x8),
+        application_usages: application_usages(&desc),
     })
 }
 
@@ -127,33 +131,7 @@ fn reports(desc: &[u8], main_tag: u8) -> Vec<(u8, usize)> {
     let mut bits: Vec<(u8, u64)> = Vec::new();
     let mut stack = Vec::new();
 
-    let mut i = 0usize;
-    while i < desc.len() {
-        let head = desc[i];
-        i += 1;
-        if head == 0xfe {
-            // Long item: [len][tag][data...]
-            let len = *desc.get(i).unwrap_or(&0) as usize;
-            i += 2 + len;
-            continue;
-        }
-        let size = match head & 0x03 {
-            0 => 0usize,
-            1 => 1,
-            2 => 2,
-            _ => 4,
-        };
-        if i + size > desc.len() {
-            break;
-        }
-        let mut data: u32 = 0;
-        for (n, b) in desc[i..i + size].iter().enumerate() {
-            data |= (*b as u32) << (8 * n);
-        }
-        i += size;
-
-        let ty = (head >> 2) & 0x03;
-        let tag = head >> 4;
+    for (ty, tag, data, _) in items(desc) {
         match (ty, tag) {
             // Global items
             (1, 0x8) => report_id = data as u8,
@@ -183,6 +161,69 @@ fn reports(desc: &[u8], main_tag: u8) -> Vec<(u8, usize)> {
     }
     out.sort_by_key(|(id, _)| *id);
     out
+}
+
+fn items(mut desc: &[u8]) -> impl Iterator<Item = (u8, u8, u32, usize)> + '_ {
+    std::iter::from_fn(move || loop {
+        let (&head, rest) = desc.split_first()?;
+        desc = rest;
+        if head == 0xfe {
+            // Long item: [len][tag][data...]
+            let len = *desc.first()? as usize;
+            desc = desc.get(2 + len..)?;
+            continue;
+        }
+        let size = match head & 0x03 {
+            0 => 0usize,
+            1 => 1,
+            2 => 2,
+            _ => 4,
+        };
+        let mut data: u32 = 0;
+        for (n, b) in desc.get(..size)?.iter().enumerate() {
+            data |= (*b as u32) << (8 * n);
+        }
+        desc = &desc[size..];
+
+        let ty = (head >> 2) & 0x03;
+        let tag = head >> 4;
+        return Some((ty, tag, data, size));
+    })
+}
+
+fn application_usages(desc: &[u8]) -> Vec<(u16, u16)> {
+    let mut usages = Vec::new();
+    let mut usage_page = 0;
+    let mut usage = None;
+    let mut stack = Vec::new();
+    for (ty, tag, data, size) in items(desc) {
+        match (ty, tag) {
+            (1, 0) => usage_page = data as u16,
+            (1, 0xa) => stack.push(usage_page),
+            (1, 0xb) => {
+                if let Some(page) = stack.pop() {
+                    usage_page = page;
+                }
+            }
+            (2, 0) => {
+                let page = if size == 4 {
+                    (data >> 16) as u16
+                } else {
+                    usage_page
+                };
+                usage = Some((page, data as u16));
+            }
+            (0, _) => {
+                if let Some(value) = usage.take() {
+                    if tag == 0xa && data == 1 {
+                        usages.push(value);
+                    }
+                }
+            }
+            _ => {}
+        }
+    }
+    usages
 }
 
 /// An opened hidraw node.
@@ -231,6 +272,8 @@ impl HidDevice {
                 name: "Test".into(),
                 feature_reports: Vec::new(),
                 output_reports: vec![(0x13, 19)],
+                input_reports: Vec::new(),
+                application_usages: Vec::new(),
             },
         }
     }

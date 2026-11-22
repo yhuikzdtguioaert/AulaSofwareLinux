@@ -140,6 +140,8 @@ mod tests {
             name: "BY Tech Gaming Keyboard".into(),
             feature_reports: features,
             output_reports: vec![],
+            input_reports: vec![],
+            application_usages: vec![],
         }
     }
 

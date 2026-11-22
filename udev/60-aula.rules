@@ -1,3 +1,4 @@
 # AULA keyboard configuration interfaces. Keep before 73-seat-late.rules.
 SUBSYSTEM=="hidraw", ATTRS{idVendor}=="258a", ATTRS{idProduct}=="010c", TAG+="uaccess", MODE="0660"
 SUBSYSTEM=="hidraw", ATTRS{idVendor}=="3554", ATTRS{idProduct}=="fa09", TAG+="uaccess", MODE="0660"
+SUBSYSTEM=="hidraw", ATTRS{idVendor}=="372e", ATTRS{idProduct}=="103e", TAG+="uaccess", MODE="0660"

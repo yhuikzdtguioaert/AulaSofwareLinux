@@ -1,6 +1,7 @@
 mod assets;
 mod config_page;
 mod device;
+mod hero;
 mod hid;
 mod ini;
 mod profile;
@@ -71,7 +72,7 @@ fn cmd_devices(profiles: &[profile::DeviceProfile]) -> anyhow::Result<()> {
             .iter()
             .map(|(id, len)| format!("{id}:{len}B"))
             .collect();
-        let mark = if device::candidate_for(&n).is_some() {
+        let mark = if device::candidate_for(&n).is_some() || hero::candidate(&n) {
             "*"
         } else {
             " "
@@ -102,11 +103,14 @@ fn cmd_devices(profiles: &[profile::DeviceProfile]) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn connect(profiles: &[profile::DeviceProfile]) -> anyhow::Result<device::Keyboard> {
+fn connect(
+    profiles: &[profile::DeviceProfile],
+    hero_problems: Vec<String>,
+) -> anyhow::Result<device::Keyboard> {
     let (kb, problems) = device::autodetect(profiles);
     kb.ok_or_else(|| {
         let mut msg = String::from("no AULA keyboard found");
-        for p in problems {
+        for p in problems.into_iter().chain(hero_problems) {
             msg.push_str(&format!("\n  {p}"));
         }
         anyhow::anyhow!(msg)
@@ -114,7 +118,17 @@ fn connect(profiles: &[profile::DeviceProfile]) -> anyhow::Result<device::Keyboa
 }
 
 fn cmd_info(profiles: &[profile::DeviceProfile]) -> anyhow::Result<()> {
-    let kb = connect(profiles)?;
+    let (hero, problems) = hero::Hero::detect();
+    if let Some(device) = hero {
+        println!(
+            "model      {}\nnode       {}\nreport id  9\nkeys       {}",
+            hero::NAME,
+            device.path().display(),
+            hero::KEY_COUNT
+        );
+        return Ok(());
+    }
+    let kb = connect(profiles, problems)?;
     println!("model      {}", kb.profile.name);
     println!("profile    {}", kb.profile.id);
     println!("node       {}", kb.link.node_path());

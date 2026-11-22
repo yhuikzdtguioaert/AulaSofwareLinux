@@ -18,6 +18,8 @@ F75, F87, F87 Pro, F87 Pro Wired, F99, F99 Pro, F99 Wired and H108. USB and the 
 
 Use USB to change per-key colours, reassign the knob press, or restore factory settings. The F99 Pro also shows its stored per-key colours and knob assignment over the receiver. In **Global**, use **Exit knob lighting mode** to return the F99 Pro knob to its normal controls after a long press switches it to onboard lighting.
 
+**HERO 68 HE** (USB `372e:103e`, model UID `110000000003`) has a separate lighting panel with 18 built-in effects and individual colours for all 68 keys. Applying per-key lighting sends the complete layout shown in the panel. This panel covers lighting. Use the [official HERO web driver](https://hero.aulastar.com/) for magnetic switch settings. The supported lighting commands and key map are documented by [aula-hero68-protocol](https://github.com/SlumberMin/aula-hero68-protocol).
+
 Configuration over Bluetooth requires switching to USB or a supported 2.4 GHz receiver.
 
 thanks to [xx12ek](https://github.com/xx12ek) for testing the f99 pro on hardware and sharing the [aula hub protocol notes](https://github.com/xx12ek/aula-f99-pro-hub/blob/main/docs/PROTOCOL.md)

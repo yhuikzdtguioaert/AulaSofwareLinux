@@ -1,3 +1,4 @@
+mod hero;
 pub mod keyboard;
 pub mod theme;
 pub mod widgets;
@@ -51,6 +52,7 @@ pub struct App {
 
     tab: Tab,
     connected: Option<Connected>,
+    hero: Option<hero::Panel>,
     keyboard: Option<KeyboardView>,
     page: ConfigPage,
     rgb: Vec<u8>,
@@ -89,6 +91,7 @@ impl App {
             theme,
             tab: Tab::Light,
             connected: None,
+            hero: None,
             keyboard: None,
             page: ConfigPage::blank(Layout::default()),
             rgb: Vec::new(),
@@ -109,6 +112,7 @@ impl App {
                     profile_id,
                     wireless,
                 } => {
+                    self.hero = None;
                     if let Some(profile) =
                         self.profiles.iter().find(|p| p.id == profile_id).cloned()
                     {
@@ -124,7 +128,16 @@ impl App {
                         self.error = None;
                     }
                 }
+                Event::HeroConnected => {
+                    self.connected = None;
+                    self.keyboard = None;
+                    self.hero = Some(hero::Panel::default());
+                    self.tab = Tab::Light;
+                    self.status.clear();
+                    self.error = None;
+                }
                 Event::Disconnected(msg) => {
+                    self.hero = None;
                     self.connected = None;
                     self.keyboard = None;
                     self.rgb.clear();
@@ -151,7 +164,9 @@ impl App {
                 }
                 Event::Error(message) => {
                     self.error = Some(message);
-                    self.page.dirty = true;
+                    if self.hero.is_none() {
+                        self.page.dirty = true;
+                    }
                 }
             }
         }
@@ -244,10 +259,14 @@ impl eframe::App for App {
             .show(&ctx, |ui| {
                 ui.set_min_size(content.size());
                 ui.set_max_size(content.size());
-                ui.add_enabled_ui(self.page.looks_valid(), |ui| match self.tab {
-                    Tab::Light => self.tab_light(ui, content),
-                    Tab::Settings => self.tab_settings(ui),
-                });
+                if let Some(hero) = &mut self.hero {
+                    hero.show(ui, &self.worker);
+                } else {
+                    ui.add_enabled_ui(self.page.looks_valid(), |ui| match self.tab {
+                        Tab::Light => self.tab_light(ui, content),
+                        Tab::Settings => self.tab_settings(ui),
+                    });
+                }
             });
 
         self.status_bar(&ctx);
@@ -275,6 +294,9 @@ impl App {
         }
 
         for (i, tab) in Tab::ALL.iter().enumerate() {
+            if self.hero.is_some() && *tab == Tab::Settings {
+                continue;
+            }
             let pos = egui::pos2(
                 full.min.x + self.theme.navi.x + i as f32 * NAVI_STEP,
                 full.min.y + self.theme.navi.y,
@@ -385,6 +407,7 @@ impl App {
                 }
                 (format!("AULA {}", c.profile.short_name), lines)
             }
+            None if self.hero.is_some() => (crate::hero::NAME.into(), vec!["USB".into()]),
             None => (String::new(), Vec::new()),
         };
 

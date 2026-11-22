@@ -7,6 +7,7 @@ use crate::config_page::{
     ConfigPage, Layout, CUSTOM_BRIGHTNESS_OFFSET, KNOB_MODE_OFFSET, KNOB_TICKS_OFFSET, PAGE_LEN,
 };
 use crate::device::{self, Keyboard};
+use crate::hero::{Hero, Lighting};
 use crate::profile::DeviceProfile;
 
 pub const KNOB_ACTIONS: [(&str, [u8; 4]); 8] = [
@@ -26,11 +27,13 @@ pub enum Request {
     WriteRgbTable(Vec<u8>),
     SetKnob([u8; 4]),
     ExitKnobLightingMode,
+    SetHeroLighting(Lighting),
     FactoryReset,
 }
 
 pub enum Event {
     Connected { profile_id: String, wireless: bool },
+    HeroConnected,
     Disconnected(String),
     Config(Vec<u8>),
     SavedConfig { sent: Vec<u8>, bytes: Vec<u8> },
@@ -66,7 +69,21 @@ impl Worker {
     }
 }
 
-struct Session {
+enum Session {
+    Legacy(Box<LegacySession>),
+    Hero(Hero),
+}
+
+impl Session {
+    fn is_present(&self) -> bool {
+        match self {
+            Self::Legacy(session) => session.keyboard.link.is_present(),
+            Self::Hero(connected) => connected.is_present(),
+        }
+    }
+}
+
+struct LegacySession {
     keyboard: Keyboard,
     knob_slot: Option<usize>,
 }
@@ -78,10 +95,7 @@ fn run(profiles: Vec<DeviceProfile>, rx: Receiver<Request>, tx: Sender<Event>) {
             Ok(request) => request,
             Err(RecvTimeoutError::Disconnected) => break,
             Err(RecvTimeoutError::Timeout) => {
-                if session
-                    .as_ref()
-                    .is_some_and(|s| !s.keyboard.link.is_present())
-                {
+                if session.as_ref().is_some_and(|s| !s.is_present()) {
                     session = None;
                     let _ = tx.send(Event::Disconnected(String::new()));
                 }
@@ -92,11 +106,26 @@ fn run(profiles: Vec<DeviceProfile>, rx: Receiver<Request>, tx: Sender<Event>) {
             }
         };
         if matches!(request, Request::Connect) {
-            session = connect(&profiles, &tx);
+            let (hero, problems) = Hero::detect();
+            session = if let Some(hero) = hero {
+                let _ = tx.send(Event::HeroConnected);
+                Some(Session::Hero(hero))
+            } else {
+                connect_legacy(&profiles, &tx, problems)
+                    .map(|legacy| Session::Legacy(Box::new(legacy)))
+            };
             continue;
         }
         let Some(active) = &mut session else { continue };
-        let result = handle(active, request, &tx);
+        let result = match (active, request) {
+            (Session::Hero(hero), Request::SetHeroLighting(setting)) => {
+                hero.set_lighting(setting).map(|()| {
+                    let _ = tx.send(Event::Notice("Lighting sent.".into()));
+                })
+            }
+            (Session::Legacy(legacy), request) => handle(legacy, request, &tx),
+            _ => continue,
+        };
         if let Err(error) = result {
             eprintln!("aula: {error}");
             let lost = matches!(
@@ -118,11 +147,21 @@ fn run(profiles: Vec<DeviceProfile>, rx: Receiver<Request>, tx: Sender<Event>) {
     }
 }
 
-fn connect(profiles: &[DeviceProfile], tx: &Sender<Event>) -> Option<Session> {
+fn connect_legacy(
+    profiles: &[DeviceProfile],
+    tx: &Sender<Event>,
+    hero_problems: Vec<String>,
+) -> Option<LegacySession> {
     let (found, problems) = device::autodetect(profiles);
     let Some(keyboard) = found else {
-        let message = if problems.iter().any(|p| p.contains("permission denied")) {
+        let message = if problems
+            .iter()
+            .chain(&hero_problems)
+            .any(|p| p.contains("permission denied"))
+        {
             "Run the installer to allow device access."
+        } else if !hero_problems.is_empty() {
+            "Could not identify a supported HERO 68 HE over USB."
         } else if !problems.is_empty() {
             "Wake the keyboard with a key press."
         } else if crate::hid::enumerate()
@@ -139,7 +178,7 @@ fn connect(profiles: &[DeviceProfile], tx: &Sender<Event>) -> Option<Session> {
     open_session(keyboard, tx)
 }
 
-fn open_session(keyboard: Keyboard, tx: &Sender<Event>) -> Option<Session> {
+fn open_session(keyboard: Keyboard, tx: &Sender<Event>) -> Option<LegacySession> {
     let page = match keyboard.link.read_config(PAGE_LEN).and_then(valid_config) {
         Ok(page) => page,
         Err(error) => {
@@ -174,7 +213,7 @@ fn open_session(keyboard: Keyboard, tx: &Sender<Event>) -> Option<Session> {
     let knob = read_knob(&keyboard);
     let _ = tx.send(Event::Knob(knob.map(|(_, action)| action)));
     let knob_slot = knob.map(|(slot, _)| slot);
-    Some(Session {
+    Some(LegacySession {
         keyboard,
         knob_slot,
     })
@@ -235,7 +274,7 @@ fn valid_config(bytes: Vec<u8>) -> io::Result<Vec<u8>> {
     Ok(bytes)
 }
 
-fn handle(session: &mut Session, request: Request, tx: &Sender<Event>) -> io::Result<()> {
+fn handle(session: &mut LegacySession, request: Request, tx: &Sender<Event>) -> io::Result<()> {
     let kb = &session.keyboard;
     match request {
         Request::WriteConfig(page) => {
@@ -306,7 +345,7 @@ fn handle(session: &mut Session, request: Request, tx: &Sender<Event>) -> io::Re
                 let _ = tx.send(Event::RgbTable(rgb));
             }
         }
-        Request::Connect => return Ok(()),
+        Request::Connect | Request::SetHeroLighting(_) => return Ok(()),
     }
     let _ = tx.send(Event::Notice(String::new()));
     Ok(())
