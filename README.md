@@ -16,7 +16,11 @@ Prebuilt Linux x86_64 packages are under [Actions → Build](https://github.com/
 
 F75, F87, F87 Pro, F87 Pro Wired, F99, F99 Pro, F99 Wired and H108. USB and the 2.4 GHz receiver are supported. Wake the keyboard with a key press if it is asleep.
 
-Use USB for per-key colours and factory reset. Bluetooth configuration and other AULA device families are not supported yet. Knob press assignments work over USB when the keyboard exposes an identifiable knob entry.
+Use USB to change per-key colours, reassign the knob press, or restore factory settings. The F99 Pro also shows its stored per-key colours and knob assignment over the receiver. In **Global**, use **Exit knob lighting mode** to return the F99 Pro knob to its normal controls after a long press switches it to onboard lighting.
+
+Configuration over Bluetooth requires switching to USB or a supported 2.4 GHz receiver.
+
+thanks to [xx12ek](https://github.com/xx12ek) for testing the f99 pro on hardware and sharing the [aula hub protocol notes](https://github.com/xx12ek/aula-f99-pro-hub/blob/main/docs/PROTOCOL.md)
 
 ## Build
 

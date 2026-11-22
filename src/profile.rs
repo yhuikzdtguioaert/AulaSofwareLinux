@@ -184,6 +184,26 @@ impl DeviceProfile {
             .unwrap_or(0)
     }
 
+    pub fn is_f99_pro(&self) -> bool {
+        self.password == [3, 0, 0, 0, 1, 0x58]
+    }
+
+    pub fn effect_value(&self, effect: LedOpt) -> u8 {
+        if self.is_f99_pro() && effect.is_off() {
+            0
+        } else {
+            effect.ui_index
+        }
+    }
+
+    pub fn custom_effect(&self) -> u8 {
+        if self.is_f99_pro() {
+            19
+        } else {
+            21
+        }
+    }
+
     pub fn brightness_levels(&self) -> usize {
         self.light_ui.len().max(1)
     }
@@ -226,13 +246,13 @@ impl DeviceProfile {
     }
 
     /// Sleep timeout in seconds -> firmware units (minutes-ish, per `SleepHW`).
-    pub fn sleep_hw(&self, ui_seconds: i64) -> u8 {
+    pub fn sleep_hw(&self, ui_seconds: i64) -> Option<u8> {
         self.sleep_ui
             .iter()
             .position(|s| *s == ui_seconds)
             .and_then(|i| self.sleep_hw.get(i))
             .copied()
-            .unwrap_or(0) as u8
+            .and_then(|value| u8::try_from(value).ok())
     }
 }
 
@@ -398,7 +418,7 @@ K1=0x09,0x01,0x07000004
         assert_eq!(p.speed_hw(0), 4);
         assert_eq!(p.speed_hw(4), 0);
         assert_eq!(p.speed_hw(99), 0, "out of range clamps to the last entry");
-        assert_eq!(p.sleep_hw(90), 3);
+        assert_eq!(p.sleep_hw(90), Some(3));
     }
 
     #[test]

@@ -75,8 +75,10 @@ pub struct Keyboard {
 pub fn open(candidate: &Candidate, profiles: &[DeviceProfile]) -> anyhow::Result<Keyboard> {
     let dev = HidDevice::open(&candidate.node)
         .map_err(|e| anyhow::anyhow!("{}", hid::permission_hint(&candidate.node.dev_path, &e)))?;
-    let link = Link::for_candidate(dev, candidate);
+    identify(Link::for_candidate(dev, candidate), profiles)
+}
 
+pub(crate) fn identify(mut link: Link, profiles: &[DeviceProfile]) -> anyhow::Result<Keyboard> {
     let password = link
         .password()
         .map_err(|e| anyhow::anyhow!("reading the device password failed: {e}"))?;
@@ -92,6 +94,10 @@ pub fn open(candidate: &Candidate, profiles: &[DeviceProfile]) -> anyhow::Result
                 fmt_password(&password)
             )
         })?;
+
+    if profile.is_f99_pro() {
+        link.use_paced_config_writes();
+    }
 
     Ok(Keyboard {
         link,

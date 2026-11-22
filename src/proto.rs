@@ -100,8 +100,8 @@ pub fn package_count(len: usize) -> u8 {
 /// ```
 ///
 /// A read is one request (no data); the keyboard streams every package back.
-/// A write is acknowledged package by package. The keyboard dozes after a few
-/// idle minutes, so a timeout usually means "asleep" rather than "broken".
+/// Writes can use acknowledgements or spacing between packets, depending on
+/// the model. A sleeping keyboard may time out until a key press wakes it.
 pub mod wireless {
     use std::io;
     use std::time::{Duration, Instant};
@@ -157,13 +157,21 @@ pub mod wireless {
 
     /// Next well-formed packet for `command` (reads and acks echo the opcode,
     /// with bit 7 flagging an error on acks).
-    fn next_reply(dev: &HidDevice, command: u8) -> io::Result<Option<Vec<u8>>> {
-        let deadline = Instant::now() + REPLY_TIMEOUT;
+    fn next_reply(
+        dev: &HidDevice,
+        command: u8,
+        deadline: Instant,
+        index: Option<u8>,
+    ) -> io::Result<Option<Vec<u8>>> {
+        let deadline = deadline.min(Instant::now() + REPLY_TIMEOUT);
         while Instant::now() < deadline {
             match dev.read_report(deadline.saturating_duration_since(Instant::now()))? {
                 None => return Ok(None),
                 Some(r) if r.len() >= PACKET_LEN && r[0] == REPORT_ID => {
-                    if r[1] & 0x7f == command & 0x7f && r[PACKET_LEN - 1] == checksum(&r) {
+                    if r[1] & 0x7f == command & 0x7f
+                        && index.is_none_or(|index| r[3] == index)
+                        && r[PACKET_LEN - 1] == checksum(&r)
+                    {
                         return Ok(Some(r));
                     }
                 }
@@ -190,7 +198,7 @@ pub mod wireless {
             let mut chunks: Vec<Option<Vec<u8>>> = Vec::new();
             let deadline = Instant::now() + Duration::from_secs(4);
             while Instant::now() < deadline {
-                let Some(r) = next_reply(dev, command)? else {
+                let Some(r) = next_reply(dev, command, deadline, None)? else {
                     break;
                 };
                 if r[1] & 0x80 != 0 {
@@ -216,8 +224,9 @@ pub mod wireless {
         Err(timed_out(&format!("read 0x{command:02x}")))
     }
 
-    /// Send `data` under write opcode `command`, waiting for each ack.
-    pub fn write(dev: &HidDevice, command: u8, data: &[u8]) -> io::Result<()> {
+    /// Send `data` under write opcode `command`. Paced writes are verified by
+    /// reading the resulting settings page at the caller.
+    pub fn write(dev: &HidDevice, command: u8, data: &[u8], paced: bool) -> io::Result<()> {
         if data.is_empty() {
             return Ok(());
         }
@@ -231,11 +240,21 @@ pub mod wireless {
         }
         for (index, chunk) in data.chunks(CHUNK).enumerate() {
             dev.write_report(&packet(command, 1, chunk, packages as u8, index as u8))?;
+            if paced {
+                // F99 Pro accepts paced transfers even when the receiver emits no ACK.
+                std::thread::sleep(super::DEFAULT_DELAY);
+                continue;
+            }
             // Opcodes with bit 7 set are fire-and-forget.
             if command & 0x80 != 0 {
                 continue;
             }
-            match next_reply(dev, command)? {
+            match next_reply(
+                dev,
+                command,
+                Instant::now() + REPLY_TIMEOUT,
+                Some(index as u8),
+            )? {
                 None => {
                     return Err(timed_out(&format!(
                         "package {index} of write 0x{command:02x}"
@@ -244,11 +263,6 @@ pub mod wireless {
                 Some(ack) if ack[1] & 0x80 != 0 => {
                     return Err(io::Error::other(format!(
                         "keyboard rejected package {index} (checksum error)"
-                    )))
-                }
-                Some(ack) if ack[3] as usize != index => {
-                    return Err(io::Error::other(format!(
-                        "ack index mismatch on package {index}"
                     )))
                 }
                 Some(_) => {}
@@ -272,7 +286,12 @@ pub mod wireless {
             peer.send(&packet(0x4a, 0, &[20], 1, 0)).unwrap();
             let expected = packet(0x44, 0, &[1, 2], 1, 0);
             peer.send(&expected).unwrap();
-            assert_eq!(next_reply(&dev, 0x44).unwrap().unwrap(), expected);
+            assert_eq!(
+                next_reply(&dev, 0x44, Instant::now() + REPLY_TIMEOUT, None)
+                    .unwrap()
+                    .unwrap(),
+                expected
+            );
         }
 
         #[test]
@@ -289,7 +308,9 @@ pub mod wireless {
                 }
             });
             let start = Instant::now();
-            assert!(next_reply(&dev, 0x44).unwrap().is_none());
+            assert!(next_reply(&dev, 0x44, Instant::now() + REPLY_TIMEOUT, None)
+                .unwrap()
+                .is_none());
             assert!(start.elapsed() < Duration::from_secs(2));
             drop(dev);
             producer.join().unwrap();
@@ -343,6 +364,7 @@ pub struct Link {
     report_id: u8,
     delay: Duration,
     wireless: bool,
+    paced_config_writes: bool,
 }
 
 impl Link {
@@ -362,7 +384,12 @@ impl Link {
             report_id: wireless::REPORT_ID,
             delay: DEFAULT_DELAY,
             wireless: true,
+            paced_config_writes: false,
         }
+    }
+
+    pub fn use_paced_config_writes(&mut self) {
+        self.paced_config_writes = true;
     }
 
     pub fn is_wireless(&self) -> bool {
@@ -377,6 +404,7 @@ impl Link {
             report_id,
             delay: DEFAULT_DELAY,
             wireless: false,
+            paced_config_writes: false,
         }
     }
 
@@ -398,6 +426,7 @@ impl Link {
         if self.wireless {
             return self.write_wireless(command, parameter, data);
         }
+        check_transfer_len(data.len())?;
         let packages = package_count(data.len());
         for (index, chunk) in data.chunks(PAGE).enumerate() {
             let buf = frame(
@@ -470,6 +499,7 @@ impl Link {
             (cmd::GET_POWER, _) => (wireless::GET_BATTERY, 2),
             (cmd::GET_LED, 0) => (0x44, len),
             (cmd::GET_MATRIX, 0) => (0x41, len),
+            (cmd::GET_RGB_TABLE, 0) => (0x42, len),
             _ => return Err(unsupported_wireless(&format!("read 0x{command:02x}"))),
         };
         let mut data = wireless::read(&self.dev, opcode)?;
@@ -492,7 +522,9 @@ impl Link {
 
     fn write_wireless(&self, command: u8, parameter: u8, data: &[u8]) -> io::Result<()> {
         match (command, parameter) {
-            (cmd::SET_LED, 0) => wireless::write(&self.dev, cmd::SET_LED, data),
+            (cmd::SET_LED, 0) => {
+                wireless::write(&self.dev, cmd::SET_LED, data, self.paced_config_writes)
+            }
             (cmd::SET_MATRIX, _) => Err(unsupported_wireless("key assignments")),
             (cmd::SET_RGB_TABLE, _) => Err(unsupported_wireless("per-key colour")),
             (cmd::RESET, _) => Err(unsupported_wireless("factory reset")),

@@ -144,7 +144,7 @@ impl App {
                 }
                 Event::RgbTable(bytes) => self.rgb = bytes,
                 Event::Power(p) => self.power = Some(p),
-                Event::Knob(action) => self.knob_action = Some(action),
+                Event::Knob(action) => self.knob_action = action,
                 Event::Notice(message) => {
                     self.status = message;
                     self.error = None;
@@ -469,7 +469,7 @@ impl App {
         let opt = profile
             .led_opts
             .iter()
-            .find(|o| o.ui_index == effect)
+            .find(|o| o.ui_index == effect || (effect == 0 && o.is_off()))
             .copied();
         let slot = ConfigPage::slot_of(effect);
         let cur = self.page.current();
@@ -508,10 +508,11 @@ impl App {
                                 &self.theme,
                                 widgets::LIST_W - 4.0,
                                 &label,
-                                o.ui_index == effect && !self.page.is_custom(),
+                                opt.is_some_and(|active| active.ui_index == o.ui_index)
+                                    && !self.page.is_custom(),
                             );
                             if row.clicked() {
-                                pick_effect = Some(o.ui_index);
+                                pick_effect = Some(profile.effect_value(*o));
                             }
                         }
                     });
@@ -742,7 +743,9 @@ impl App {
                 .selected_text(label)
                 .show_ui(ui, |ui| {
                     for s in profile.sleep_ui.clone() {
-                        let hw = profile.sleep_hw(s);
+                        let Some(hw) = profile.sleep_hw(s) else {
+                            continue;
+                        };
                         if ui
                             .selectable_label(current == hw, format!("{s} s"))
                             .clicked()
@@ -760,17 +763,26 @@ impl App {
             let label = actions
                 .iter()
                 .find(|(_, action)| *action == current)
-                .map(|(name, _)| *name)
-                .unwrap_or("Custom");
-            egui::ComboBox::from_id_salt("knob-action")
-                .selected_text(label)
-                .show_ui(ui, |ui| {
-                    for (name, action) in actions {
-                        if ui.selectable_label(current == action, name).clicked() {
-                            self.worker.send(Request::SetKnob(action));
+                .map(|(name, _)| (*name).to_string())
+                .unwrap_or_else(|| crate::remap::describe(current));
+            ui.add_enabled_ui(!self.wireless, |ui| {
+                egui::ComboBox::from_id_salt("knob-action")
+                    .selected_text(label)
+                    .show_ui(ui, |ui| {
+                        for (name, action) in actions {
+                            if ui.selectable_label(current == action, name).clicked() {
+                                self.worker.send(Request::SetKnob(action));
+                            }
                         }
-                    }
-                });
+                    });
+            });
+            if self.wireless {
+                ui.label("Connect with USB to change the assignment.");
+            }
+        }
+
+        if profile.is_f99_pro() && ui.button("Exit knob lighting mode").clicked() {
+            self.worker.send(Request::ExitKnobLightingMode);
         }
 
         ui.add_space(12.0);

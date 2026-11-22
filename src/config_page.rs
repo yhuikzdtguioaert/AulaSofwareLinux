@@ -3,6 +3,9 @@ use std::path::Path;
 
 /// Size of the settings page, fixed by the `5A A5` marker at 0x7e..0x7f.
 pub const PAGE_LEN: usize = 128;
+pub const KNOB_MODE_OFFSET: usize = 0x1a;
+pub const KNOB_TICKS_OFFSET: usize = 0x38;
+pub const CUSTOM_BRIGHTNESS_OFFSET: usize = 0x75;
 
 /// Byte offsets inside the settings page.
 #[derive(Debug, Clone, Copy)]
@@ -202,16 +205,19 @@ impl ConfigPage {
     pub fn current(&self) -> EffectSettings {
         if self.is_custom() {
             return EffectSettings {
-                brightness: self.get(0x75),
+                brightness: self.get(CUSTOM_BRIGHTNESS_OFFSET),
                 ..Default::default()
             };
         }
-        self.slot_settings(Self::slot_of(self.effect()))
+        match self.effect() {
+            0 => EffectSettings::default(),
+            effect => self.slot_settings(Self::slot_of(effect)),
+        }
     }
 
     pub fn set_brightness(&mut self, slot: u8, v: u8) {
         if self.is_custom() {
-            self.set(0x75, v);
+            self.set(CUSTOM_BRIGHTNESS_OFFSET, v);
             return;
         }
         if let Some(at) = self.entry(slot) {
@@ -293,6 +299,19 @@ mod tests {
                 color: 0
             }
         );
+    }
+
+    #[test]
+    fn off_does_not_read_slot_zero_and_custom_uses_its_own_brightness() {
+        let mut page = f75();
+        page.set_effect(0);
+        assert_eq!(page.current(), EffectSettings::default());
+        assert_eq!(page.slot_settings(0).brightness, 9);
+
+        page.bytes[0x09] = 1;
+        page.set_brightness(0, 9);
+        assert_eq!(page.bytes[CUSTOM_BRIGHTNESS_OFFSET], 9);
+        assert_eq!(page.current().brightness, 9);
     }
 
     #[test]

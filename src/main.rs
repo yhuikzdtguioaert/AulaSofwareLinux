@@ -125,7 +125,7 @@ fn cmd_info(profiles: &[profile::DeviceProfile]) -> anyhow::Result<()> {
         kb.profile.keys.len(),
         kb.profile.led_count()
     );
-    if kb.profile.show_power {
+    if kb.profile.show_power || kb.link.is_wireless() {
         match kb.link.power() {
             Ok(p) => println!("battery    {p:?}"),
             Err(e) => println!("battery    unavailable: {e}"),

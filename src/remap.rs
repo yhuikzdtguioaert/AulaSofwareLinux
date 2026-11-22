@@ -1,10 +1,12 @@
 use std::io;
 
 const DEFAULT_KNOB: [u8; 4] = [0x07, 0, 0, 0x1d];
+pub const MATRIX_TRAILER: [u8; 4] = [0, 0, 0x5a, 0xa5];
 
 // Find the actual knob assignment; its slot varies between layouts.
 pub fn find_knob(matrix: &[u8]) -> Option<usize> {
-    let mut slots = matrix
+    let limit = matrix.len() - usize::from(matrix.ends_with(&MATRIX_TRAILER)) * 4;
+    let mut slots = matrix[..limit]
         .as_chunks::<4>()
         .0
         .iter()
@@ -25,80 +27,61 @@ pub fn set_knob(matrix: &mut [u8], slot: usize, action: [u8; 4]) -> io::Result<(
             "invalid knob action",
         ));
     }
-    let start = slot
-        .checked_mul(4)
-        .ok_or_else(|| io::Error::other("invalid knob slot"))?;
-    let end = start
-        .checked_add(4)
-        .ok_or_else(|| io::Error::other("invalid knob slot"))?;
-    let limit = matrix.len() - usize::from(matrix.ends_with(&[0x5a, 0xa5])) * 2;
-    if end > limit {
-        return Err(io::Error::other("invalid knob slot"));
-    }
-    let entry = matrix
-        .get_mut(start..end)
-        .ok_or_else(|| io::Error::other("invalid knob slot"))?;
-    entry.copy_from_slice(&action);
+    let range = slot_range(matrix, slot).ok_or_else(|| io::Error::other("invalid knob slot"))?;
+    matrix[range].copy_from_slice(&action);
     Ok(())
 }
 
-fn setting_path(profile: &crate::profile::DeviceProfile) -> Option<std::path::PathBuf> {
-    let root = std::env::var_os("XDG_CONFIG_HOME")
-        .map(std::path::PathBuf::from)
-        .or_else(|| {
-            std::env::var_os("HOME").map(|home| std::path::PathBuf::from(home).join(".config"))
-        })?;
-    let identity = profile
-        .password
-        .iter()
-        .map(|b| format!("{b:02x}"))
-        .collect::<String>();
-    Some(root.join("aula").join(format!("knob-{identity}")))
+fn slot_range(matrix: &[u8], slot: usize) -> Option<std::ops::Range<usize>> {
+    let start = slot.checked_mul(4)?;
+    let end = start.checked_add(4)?;
+    let limit = matrix.len() - usize::from(matrix.ends_with(&MATRIX_TRAILER)) * 4;
+    (end <= limit).then_some(start..end)
 }
 
 pub fn locate_knob(
     profile: &crate::profile::DeviceProfile,
     matrix: &[u8],
 ) -> Option<(usize, [u8; 4])> {
-    if let Some(slot) = find_knob(matrix) {
-        return Some((slot, DEFAULT_KNOB));
-    }
-    let text = std::fs::read_to_string(setting_path(profile)?).ok()?;
-    let values = text
-        .split_whitespace()
-        .map(str::parse::<usize>)
-        .collect::<Result<Vec<_>, _>>()
-        .ok()?;
-    let [slot, a, b, c, d] = values.as_slice() else {
-        return None;
-    };
-    let action = [
-        u8::try_from(*a).ok()?,
-        u8::try_from(*b).ok()?,
-        u8::try_from(*c).ok()?,
-        u8::try_from(*d).ok()?,
-    ];
-    let start = slot.checked_mul(4)?;
-    (matrix.get(start..start.checked_add(4)?) == Some(action.as_slice())).then_some((*slot, action))
+    let wheel = profile
+        .keys
+        .iter()
+        .find(|key| key.name.eq_ignore_ascii_case("wheel"))?;
+    // Wheel has no LED or geometry. The last field of its INI row is its
+    // matrix slot, so it remains identifiable even after an external remap.
+    let slot = usize::try_from(wheel.led)
+        .ok()
+        .filter(|slot| slot_range(matrix, *slot).is_some())
+        .or_else(|| find_knob(matrix))?;
+    let range = slot_range(matrix, slot)?;
+    Some((slot, matrix[range].try_into().ok()?))
 }
 
-pub fn remember_knob(
-    profile: &crate::profile::DeviceProfile,
-    slot: usize,
-    action: [u8; 4],
-) -> io::Result<()> {
-    let path = setting_path(profile)
-        .ok_or_else(|| io::Error::other("configuration directory unavailable"))?;
-    std::fs::create_dir_all(path.parent().unwrap())?;
-    let temporary = path.with_extension("tmp");
-    std::fs::write(
-        &temporary,
-        format!(
-            "{slot} {} {} {} {}\n",
-            action[0], action[1], action[2], action[3]
-        ),
-    )?;
-    std::fs::rename(temporary, path)
+/// Describe an existing assignment even when it isn't one of the presets.
+pub fn describe([kind, a, b, c]: [u8; 4]) -> String {
+    match kind {
+        0 => {
+            let modifiers = [
+                "Ctrl", "Shift", "Alt", "Super", "RCtrl", "RShift", "RAlt", "RSuper",
+            ];
+            let mut parts: Vec<String> = modifiers
+                .iter()
+                .enumerate()
+                .filter(|(bit, _)| a & (1 << bit) != 0)
+                .map(|(_, name)| (*name).into())
+                .collect();
+            parts.push(format!("Key 0x{c:02X}"));
+            parts.join(" + ")
+        }
+        1 => format!("Command {a}"),
+        2 => format!("Media usage 0x{:04X}", u16::from_be_bytes([b, c])),
+        3 => format!("Macro {}", u16::from(c) + 1),
+        5 => format!("Mouse buttons 0x{a:02X}"),
+        7 => format!("Keyboard function 0x{c:02X}"),
+        8 => format!("Keyboard function {a:02X} {b:02X} {c:02X}"),
+        0x0d => "Fn".into(),
+        _ => format!("Assignment {kind:02X} {a:02X} {b:02X} {c:02X}"),
+    }
 }
 
 #[cfg(test)]
@@ -116,6 +99,25 @@ mod tests {
             assert_eq!(&matrix[..slot * 4], &before[..slot * 4]);
             assert_eq!(&matrix[slot * 4 + 4..], &before[slot * 4 + 4..]);
         }
+    }
+
+    #[test]
+    fn finds_a_remapped_f99_pro_knob_and_protects_the_matrix_trailer() {
+        let profile = crate::profile::DeviceProfile::load(std::path::Path::new(
+            "assets/devices/f99-pro-f99pro",
+        ))
+        .unwrap();
+        let mut matrix = vec![0; 512];
+        matrix[508..].copy_from_slice(&MATRIX_TRAILER);
+        let mute = [2, 0, 0, 0xe2];
+        matrix[432..436].copy_from_slice(&mute);
+        assert_eq!(locate_knob(&profile, &matrix), Some((108, mute)));
+        assert!(set_knob(&mut matrix, 127, DEFAULT_KNOB).is_err());
+        assert_eq!(matrix[508..], MATRIX_TRAILER);
+        set_knob(&mut matrix, 108, DEFAULT_KNOB).unwrap();
+        assert_eq!(locate_knob(&profile, &matrix), Some((108, DEFAULT_KNOB)));
+        assert_eq!(describe([0, 0x60, 0, 4]), "RShift + RAlt + Key 0x04");
+        assert_eq!(describe([2, 0, 0x02, 0x23]), "Media usage 0x0223");
     }
 
     #[test]
